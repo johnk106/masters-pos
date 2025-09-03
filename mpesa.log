@@ -1,0 +1,48 @@
+Using fallback callback URL: https://webhook.site/unique-id/mpesa-callback
+Using callback URL: https://webhook.site/unique-id/mpesa-callback
+Error getting M-Pesa access token: 400 Client Error: Bad Request for url: https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials
+Using callback URL: https://28c014be4b76.ngrok-free.app/dashboard/sales/mpesa-callback/
+M-Pesa callback received: keys=['Body']
+M-Pesa callback processed OK: checkout_request_id=ws_CO_110820251951096768691389, order_id=60, applied=False
+Using callback URL: https://28c014be4b76.ngrok-free.app/dashboard/sales/mpesa-callback/
+Using callback URL: https://28c014be4b76.ngrok-free.app/dashboard/sales/mpesa-callback/
+M-Pesa callback received: keys=['Body']
+Applied payment to Invoice INV-ORD-20250811-165240-4975: paid=1.00, due=1999.00
+M-Pesa callback processed OK: checkout_request_id=ws_CO_110820251952430768691389, order_id=62, applied=True
+Using callback URL: https://fe72d78ed8ca.ngrok-free.app/dashboard/sales/mpesa-callback/
+Using callback URL: https://fe72d78ed8ca.ngrok-free.app/dashboard/sales/mpesa-callback/
+Using callback URL: https://fe72d78ed8ca.ngrok-free.app/dashboard/sales/mpesa-callback/
+Using callback URL: https://fe72d78ed8ca.ngrok-free.app/dashboard/sales/mpesa-callback/
+Using callback URL: https://fe72d78ed8ca.ngrok-free.app/dashboard/sales/mpesa-callback/
+Using callback URL: https://fe72d78ed8ca.ngrok-free.app/dashboard/sales/mpesa-callback/
+Using callback URL: https://fe72d78ed8ca.ngrok-free.app/dashboard/sales/mpesa-callback/
+Using callback URL: https://fe72d78ed8ca.ngrok-free.app/dashboard/sales/mpesa-callback/
+Using callback URL: https://ff4f35f422ff.ngrok-free.app/dashboard/sales/mpesa-callback/
+M-Pesa callback received: keys=['Body']
+M-Pesa callback processed OK: checkout_request_id=ws_CO_130820251146586768691389, order_id=71, applied=False
+Using callback URL: https://ff4f35f422ff.ngrok-free.app/dashboard/sales/mpesa-callback/
+M-Pesa callback received: keys=['Body']
+M-Pesa callback processed OK: checkout_request_id=ws_CO_130820251147268768691389, order_id=72, applied=False
+Using callback URL: https://ff4f35f422ff.ngrok-free.app/dashboard/sales/mpesa-callback/
+M-Pesa callback received: keys=['Body']
+M-Pesa callback processed OK: checkout_request_id=ws_CO_130820251147471768691389, order_id=73, applied=False
+Using callback URL: https://ff4f35f422ff.ngrok-free.app/dashboard/sales/mpesa-callback/
+M-Pesa callback received: keys=['Body']
+M-Pesa callback processed OK: checkout_request_id=ws_CO_130820251149543768669397, order_id=74, applied=False
+Using callback URL: https://ff4f35f422ff.ngrok-free.app/dashboard/sales/mpesa-callback/
+M-Pesa callback received: keys=['Body']
+M-Pesa callback processed OK: checkout_request_id=ws_CO_130820251151073768691389, order_id=75, applied=False
+Using callback URL: https://ff4f35f422ff.ngrok-free.app/dashboard/sales/mpesa-callback/
+M-Pesa callback received: keys=['Body']
+Applied payment to Invoice INV-ORD-20250813-085317-8918: paid=1.00, due=1999.00
+M-Pesa callback processed OK: checkout_request_id=ws_CO_130820251153190768669397, order_id=76, applied=True
+Using callback URL: https://9341a4f03274.ngrok-free.app/dashboard/sales/mpesa-callback/
+M-Pesa callback received: keys=['Body']
+M-Pesa callback processed OK: checkout_request_id=ws_CO_200820251229599768691389, order_id=77, applied=False
+Using callback URL: https://9341a4f03274.ngrok-free.app/dashboard/sales/mpesa-callback/
+M-Pesa callback received: keys=['Body']
+M-Pesa callback processed OK: checkout_request_id=ws_CO_200820251230279768691389, order_id=78, applied=False
+Using callback URL: https://9341a4f03274.ngrok-free.app/dashboard/sales/mpesa-callback/
+M-Pesa callback received: keys=['Body']
+Applied payment to Invoice INV-ORD-20250820-093058-3354: paid=1.00, due=1999.00
+M-Pesa callback processed OK: checkout_request_id=ws_CO_200820251231000768691389, order_id=79, applied=True

@@ -1,0 +1,943 @@
+{%extends 'landing/base.html'%}
+{%load static%}
+{%load humanize%}
+
+{%block head%}
+
+<title>Purchases</title>
+{%endblock%}
+
+
+{%block body%}
+<div class="page-wrapper">
+	<div class="content">
+		<div class="page-header transfer">
+			<div class="add-item d-flex">
+				<div class="page-title">
+					<h4 class="fw-bold">Purchase</h4>
+					<h6>Manage your purchases</h6>
+					<br>
+					{% if messages %}
+					{% for message in messages %}
+					{% if message.tags == 'error' %}
+					<!-- Error Alert -->
+					<div class="alert alert-solid-danger alert-dismissible fade show">
+						{{message}}
+						<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"><i
+								class="fas fa-xmark"></i></button>
+					</div>
+					{% elif message.tags == 'success' %}
+					<!-- Success Alert -->
+					<div class="alert alert-solid-success alert-dismissible fade show">
+						{{message}}
+						<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"><i
+								class="fas fa-xmark"></i></button>
+					</div>
+					{% endif %}
+					{% endfor %}
+					{% endif %}
+				</div>
+			</div>
+			<ul class="table-top-head">
+				<li>
+					<a data-bs-toggle="tooltip" data-bs-placement="top" title="Pdf" href="{{ export_pdf_url }}">
+						<img src="{% static 'landing/assets/img/icons/pdf.svg' %}" alt="PDF">
+					</a>
+				</li>
+				<li>
+					<a data-bs-toggle="tooltip" data-bs-placement="top" title="Excel" href="{{ export_excel_url }}">
+						<img src="{% static 'landing/assets/img/icons/excel.svg' %}" alt="Excel">
+					</a>
+				</li>
+				<li>
+					<a data-bs-toggle="tooltip" data-bs-placement="top" title="Refresh"><i data-feather="rotate-ccw"
+							class="feather-rotate-ccw"></i></a>
+				</li>
+				<li>
+					<a data-bs-toggle="tooltip" data-bs-placement="top" title="Collapse" id="collapse-header"><i
+							class="ti ti-chevron-up"></i></a>
+				</li>
+			</ul>
+			<div class="d-flex purchase-pg-btn">
+				<div class="page-btn">
+					<a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add-purchase"><i
+							data-feather="plus-circle" class="me-1"></i>Add Purchase</a>
+				</div>
+				<!-- <div class="page-btn import">
+					<a href="#" class="btn btn-secondary color" data-bs-toggle="modal" data-bs-target="#view-notes"><i
+							data-feather="download" class="me-2"></i>Import Purchase</a>
+				</div> -->
+			</div>
+
+		</div>
+
+		<div class="card">
+			<div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
+				<div class="search-set">
+					<div class="search-input">
+						<span class="btn-searchset"><i class="ti ti-search fs-14 feather-search"></i></span>
+					</div>
+				</div>
+				<div class="d-flex table-dropdown my-xl-auto right-content align-items-center flex-wrap row-gap-3">
+					<div class="dropdown">
+						<a href="javascript:void(0);"
+							class="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center"
+							data-bs-toggle="dropdown">
+							Payment Status
+						</a>
+						<ul class="dropdown-menu  dropdown-menu-end p-3">
+							<li>
+								<a href="javascript:void(0);" class="dropdown-item rounded-1">Paid</a>
+							</li>
+							<li>
+								<a href="javascript:void(0);" class="dropdown-item rounded-1">Unpaid</a>
+							</li>
+							<li>
+								<a href="javascript:void(0);" class="dropdown-item rounded-1">Overdue</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<div class="card-body p-0">
+				<div class="table-responsive">
+					<table class="table ">
+						<thead class="thead-light">
+							<tr>
+								<th class="no-sort">
+									<label class="checkboxs">
+										<input type="checkbox" id="select-all">
+										<span class="checkmarks"></span>
+									</label>
+								</th>
+								<th>Supplier Name</th>
+								<th>Reference</th>
+								<th>Date</th>
+								<th>Status</th>
+								<th>Total</th>
+								<th>Paid</th>
+								<th>Due</th>
+								<th>Payment Status</th>
+								<th class="no-sort"></th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for purchase in page_obj %}
+							<tr>
+								<td>
+									<label class="checkboxs">
+										<input type="checkbox" name="selected" value="{{ purchase.id }}">
+										<span class="checkmarks"></span>
+									</label>
+								</td>
+								<td>{{ purchase.supplier.name }}</td>
+								<td>{{ purchase.reference }}</td>
+								<td>{{ purchase.order_date|date:"d M Y" }}</td>
+								<td>
+									{% if purchase.status == 'canceled' %}
+									<span class="badges status-badge fs-10 p-1 px-2 rounded-1 bg-danger text-white">
+										<i class="ti ti-point-filled me-1 fs-11 text-white"></i>{{ purchase.get_status_display }}
+									</span>
+									{% elif purchase.status == 'ordered' %}
+									<span class="badges status-badge fs-10 p-1 px-2 rounded-1 bg-warning text-dark">
+										<i class="ti ti-point-filled me-1 fs-11 text-dark"></i>{{ purchase.get_status_display }}
+									</span>
+									{% elif purchase.status == 'received' %}
+									<span class="badges status-badge fs-10 p-1 px-2 rounded-1 bg-success text-white">
+										<i class="ti ti-point-filled me-1 fs-11 text-white"></i>{{ purchase.get_status_display }}
+									</span>
+									{% elif purchase.status == 'draft' %}
+									<span class="badges status-badge fs-10 p-1 px-2 rounded-1 bg-secondary text-white">
+										<i class="ti ti-point-filled me-1 fs-11 text-white"></i>{{ purchase.get_status_display }}
+									</span>
+									{% else %}
+									<span class="badges status-badge fs-10 p-1 px-2 rounded-1">
+										{{ purchase.get_status_display }}
+									</span>
+									{% endif %}
+								</td>
+								<td>ksh {{ purchase.grand_total | intcomma}}</td>
+								<td>ksh {{ purchase.paid_amount | intcomma}}</td>
+								<td>ksh {{ purchase.due_amount | intcomma}}</td>
+								<td>
+									{% if purchase.payment_status == 'paid' %}
+									<span class="p-1 pe-2 rounded-1 text-success bg-success-transparent fs-10">
+										<i class="ti ti-point-filled me-1 fs-11"></i>Paid
+									</span>
+									{% else %}
+									<span class="p-1 pe-2 rounded-1 text-danger bg-danger-transparent fs-10">
+										<i class="ti ti-alert-triangle me-1 fs-11"></i>Not Paid
+									</span>
+									{% endif %}
+								</td>
+								<td class="action-table-data">
+									<div class="edit-delete-action">
+										<a class="me-2 p-2" href="#" data-bs-toggle="modal"
+											data-bs-target="#purchase-details-modal" data-purchase-id="{{ purchase.id }}">
+											<i data-feather="eye" class="action-eye"></i>
+										</a>
+										<a class="me-2 p-2" href="{% url 'purchases:edit_purchase' purchase.id %}">
+											<i data-feather="edit" class="feather-edit"></i>
+										</a>
+										<a data-bs-toggle="modal" data-bs-target="#delete-modal-{{ purchase.id }}"
+											class="p-2" href="javascript:void(0);">
+											<i data-feather="trash-2" class="feather-trash-2"></i>
+										</a>
+									</div>
+								</td>
+							</tr>
+							{% empty %}
+							<tr>
+								<td colspan="10" class="text-center">No purchases found.</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+
+				</div>
+
+			</div>
+		</div>
+		<!-- /product list -->
+	</div>
+	<div class="footer d-sm-flex align-items-center justify-content-between border-top bg-white p-3">
+		<p class="mb-0 text-gray-9">22025 &copy; Twoven Ecommerce. All Right Reserved</p>
+		<p>Designed &amp; Developed by <a href="javascript:void(0);" class="text-primary">Twoven</a></p>
+	</div>
+</div>
+<!-- Add Purchase -->
+<!-- Add Purchase Modal -->
+<div class="modal fade" id="add-purchase" tabindex="-1" aria-labelledby="addPurchaseLabel" aria-hidden="true">
+	<div class="modal-dialog purchase modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title" id="addPurchaseLabel">Add Purchase</h4>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+
+			<form method="post" id="add-purchase-form" action="{% url 'purchases:purchases' %}">
+				{% csrf_token %}
+				<div class="modal-body">
+
+					<!-- Header fields -->
+					<div class="row mb-3">
+						<div class="col-md-6">
+							<label class="form-label">Supplier<span class="text-danger">*</span></label>
+							{{ form.supplier }}
+							{% if form.supplier.errors %}
+								<div class="text-danger mt-1">
+									{% for error in form.supplier.errors %}
+										<small>{{ error }}</small>
+									{% endfor %}
+								</div>
+							{% endif %}
+						</div>
+						<div class="col-md-6">
+							<label class="form-label">Date<span class="text-danger">*</span></label>
+							<input type="date" class="form-control p-2" name="order_date" value="{{ today|date:'Y-m-d' }}" required>
+						</div>
+					</div>
+
+					<!-- Hidden template for new line items -->
+					<table style="display: none;">
+						<tbody id="purchase-item-template">
+							<tr>
+								{% with empty=formset.empty_form %}
+								<td>{{ empty.product }}</td>
+								<td>{{ empty.quantity }}</td>
+								<td>{{ empty.unit_cost }}</td>
+								<td>{{ empty.discount }}</td>
+								<td>{{ empty.tax_amount }}</td>
+								<td>
+									<button type="button" class="btn btn-sm btn-danger remove-row">
+										<i class="fas fa-trash"></i>
+									</button>
+								</td>
+								{% endwith %}
+							</tr>
+						</tbody>
+					</table>
+
+					<!-- Line items table -->
+					<div class="table-responsive mb-3">
+						{{ formset.management_form }}
+						<table class="table table-bordered" id="purchase-items-table">
+							<thead>
+								<tr>
+									<th>Product</th>
+									<th>Qty</th>
+									<th>Purchase Price ($)</th>
+									<th>Discount ($)</th>
+									<th>Tax (%)</th>
+									<th>Action</th>
+								</tr>
+							</thead>
+							<tbody>
+								{# Initially empty; rows injected via JS #}
+							</tbody>
+						</table>
+						<button type="button" class="btn btn-sm btn-link" id="add-purchase-row">
+							Add Another Product
+						</button>
+					</div>
+
+					<!-- Footer fields -->
+					<div class="row mb-3">
+						<div class="col-md-3">
+							{{ form.order_tax.label_tag }}
+							{{ form.order_tax }}
+							{{ form.order_tax.errors }}
+						</div>
+						<div class="col-md-3">
+							{{ form.discount.label_tag }}
+							{{ form.discount }}
+							{{ form.discount.errors }}
+						</div>
+						<div class="col-md-3">
+							{{ form.shipping.label_tag }}
+							{{ form.shipping }}
+							{{ form.shipping.errors }}
+						</div>
+						<div class="col-md-3">
+							{{ form.status.label_tag }}
+							{{ form.status }}
+							{{ form.status.errors }}
+						</div>
+					</div>
+
+					<div class="row mb-3">
+						<div class="col-md-6">
+							{{ form.payment_status.label_tag }}<span class="text-danger">*</span>
+							{{ form.payment_status }}
+							{% if form.payment_status.errors %}
+								<div class="text-danger mt-1">
+									{% for error in form.payment_status.errors %}
+										<small>{{ error }}</small>
+									{% endfor %}
+								</div>
+							{% endif %}
+						</div>
+					</div>
+
+					<div class="mb-3">
+						{{ form.description.label_tag }}
+						{{ form.description }}
+						{{ form.description.errors }}
+					</div>
+				</div>
+
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+						Cancel
+					</button>
+					<button type="submit" class="btn btn-primary" id="submit-purchase-btn">
+						<span class="btn-text">Submit</span>
+						<span class="btn-loading" style="display: none;">
+							<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+							Submitting...
+						</span>
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+<script>
+	document.addEventListener('DOMContentLoaded', () => {
+		const addBtn = document.getElementById('add-purchase-row');
+		const totalForms = document.querySelector('input[name="{{ formset.prefix }}-TOTAL_FORMS"]');
+		const tbody = document.querySelector('#purchase-items-table tbody');
+		const template = document.querySelector('#purchase-item-template tr');
+		let productsData = [];
+
+		// Fetch products from the server
+		async function fetchProducts() {
+			try {
+				const response = await fetch('{% url "purchases:get_products_ajax" %}');
+				const data = await response.json();
+				if (data.products) {
+					productsData = data.products;
+				}
+			} catch (error) {
+				console.error('Error fetching products:', error);
+			}
+		}
+
+		// Populate product dropdown with options
+		function populateProductDropdown(selectElement) {
+			// Clear existing options
+			selectElement.innerHTML = '<option value="">Select a product</option>';
+			
+			if (productsData.length === 0) {
+				const option = document.createElement('option');
+				option.value = '';
+				option.textContent = 'No products available';
+				option.disabled = true;
+				selectElement.appendChild(option);
+				return;
+			}
+			
+			// Add product options
+			productsData.forEach(product => {
+				const option = document.createElement('option');
+				option.value = product.id;
+				option.textContent = `${product.name} ${product.sku ? '(' + product.sku + ')' : ''}`;
+				selectElement.appendChild(option);
+			});
+		}
+
+		function addRow() {
+			const idx = parseInt(totalForms.value, 10);
+			const row = template.cloneNode(true);
+
+			row.querySelectorAll('input, select').forEach(el => {
+				const name = el.name.replace('__prefix__', idx);
+				el.name = name;
+				el.id = name;
+				if (el.tagName === 'INPUT') {
+					el.value = '';
+				} else if (el.tagName === 'SELECT' && el.name.includes('product')) {
+					// Populate the product dropdown
+					populateProductDropdown(el);
+				}
+			});
+
+			tbody.appendChild(row);
+			totalForms.value = idx + 1;
+		}
+
+		// When modal opens, fetch products and add one blank row
+		const modal = document.getElementById('add-purchase');
+		modal.addEventListener('show.bs.modal', async () => {
+			tbody.innerHTML = '';
+			totalForms.value = 0;
+			
+			// Fetch products if not already loaded
+			if (productsData.length === 0) {
+				await fetchProducts();
+			}
+			
+			addRow();
+		});
+
+		// Add row on button click
+		addBtn.addEventListener('click', addRow);
+
+		// Handle row removal
+		tbody.addEventListener('click', (e) => {
+			if (e.target.closest('.remove-row')) {
+				const row = e.target.closest('tr');
+				row.remove();
+				
+				// Update form count
+				const currentCount = parseInt(totalForms.value, 10);
+				if (currentCount > 0) {
+					totalForms.value = currentCount - 1;
+				}
+				
+				// Re-index remaining rows
+				const rows = tbody.querySelectorAll('tr');
+				rows.forEach((row, index) => {
+					row.querySelectorAll('input, select').forEach(el => {
+						const name = el.name.replace(/\d+/, index);
+						el.name = name;
+						el.id = name;
+					});
+				});
+			}
+		});
+	});
+
+	// Form submission loading state
+	document.getElementById('add-purchase-form').addEventListener('submit', function() {
+		const submitBtn = document.getElementById('submit-purchase-btn');
+		const btnText = submitBtn.querySelector('.btn-text');
+		const btnLoading = submitBtn.querySelector('.btn-loading');
+		
+		btnText.style.display = 'none';
+		btnLoading.style.display = 'inline-block';
+		submitBtn.disabled = true;
+	});
+
+	// Purchase Details Modal Handler
+	document.getElementById('purchase-details-modal')
+		.addEventListener('show.bs.modal', async function(event) {
+			const button = event.relatedTarget;
+			const purchaseId = button.getAttribute('data-purchase-id');
+			
+			// Clear previous error messages
+			const modalBody = document.querySelector('#purchase-details-modal .modal-content');
+			const existingError = modalBody.querySelector('.alert-danger');
+			if (existingError) {
+				existingError.remove();
+			}
+			
+			// Show loading spinner
+			const loadingDiv = document.createElement('div');
+			loadingDiv.className = 'text-center p-4';
+			loadingDiv.id = 'modal-loading';
+			loadingDiv.innerHTML = `
+				<div class="spinner-border text-primary" role="status">
+					<span class="visually-hidden">Loading...</span>
+				</div>
+				<p class="mt-2">Loading purchase details...</p>
+			`;
+			
+			// Hide modal content and show loading
+			const modalContent = document.querySelector('#purchase-details-modal .invoice-box');
+			modalContent.style.display = 'none';
+			modalBody.insertBefore(loadingDiv, modalContent);
+			
+			try {
+				const response = await fetch(`{% url 'purchases:get_purchase_details_ajax' 0 %}`.replace('0', purchaseId));
+				
+				if (!response.ok) {
+					const errorData = await response.json().catch(() => ({}));
+					throw new Error(errorData.error || `HTTP ${response.status}: Failed to load purchase details`);
+				}
+				
+				const data = await response.json();
+				
+				console.log('Purchase details response:', data); // Debug log
+				
+				// Validate required data structure
+				if (!data.supplier || !data.purchase || !data.totals) {
+					throw new Error('Invalid response data structure');
+				}
+				
+				// Populate supplier info
+				document.getElementById('modal-supplier-name').textContent = data.supplier.name;
+				document.getElementById('modal-supplier-country').textContent = data.supplier.country || 'No country provided';
+				document.getElementById('modal-supplier-email').textContent = data.supplier.email || 'No email provided';
+				document.getElementById('modal-supplier-phone').textContent = data.supplier.phone || 'No phone provided';
+				
+				// Update supplier image if available
+				if (data.supplier.image) {
+					document.getElementById('modal-supplier-image').src = data.supplier.image;
+				}
+				
+				// Populate purchase info
+				document.getElementById('modal-purchase-ref').textContent = data.purchase.reference;
+				document.getElementById('modal-purchase-date').textContent = data.purchase.date;
+				
+				// Set status with appropriate color
+				const statusElement = document.getElementById('modal-purchase-status');
+				statusElement.textContent = data.purchase.status;
+				statusElement.className = 'badge';
+				
+				switch(data.purchase.status_value) {
+					case 'canceled':
+						statusElement.classList.add('bg-danger', 'text-white');
+						break;
+					case 'ordered':
+						statusElement.classList.add('bg-warning', 'text-dark');
+						break;
+					case 'received':
+						statusElement.classList.add('bg-success', 'text-white');
+						break;
+					case 'draft':
+						statusElement.classList.add('bg-secondary', 'text-white');
+						break;
+					default:
+						statusElement.classList.add('bg-light', 'text-dark');
+				}
+				
+				// Set payment status with appropriate color
+				const paymentStatusElement = document.getElementById('modal-payment-status');
+				paymentStatusElement.textContent = data.purchase.payment_status;
+				paymentStatusElement.className = 'badge';
+				
+				if (data.purchase.payment_status_value === 'paid') {
+					paymentStatusElement.classList.add('bg-success', 'text-white');
+				} else {
+					paymentStatusElement.classList.add('bg-danger', 'text-white');
+				}
+				
+				document.getElementById('modal-purchase-receive-date').textContent = data.purchase.receive_date || 'Not received';
+				
+				// Populate items table
+				const tbody = document.querySelector('#modal-purchase-items-table tbody');
+				tbody.innerHTML = '';
+				
+				if (data.items && data.items.length > 0) {
+					data.items.forEach(item => {
+						const tr = document.createElement('tr');
+						tr.innerHTML = `
+							<td>${item.product_name}</td>
+							<td>ksh ${item.unit_cost.toFixed(2)}</td>
+							<td>${item.quantity}</td>
+							<td>ksh ${item.discount.toFixed(2)}</td>
+							<td>ksh ${item.tax_amount.toFixed(2)}</td>
+							<td>ksh ${item.total_cost.toFixed(2)}</td>
+						`;
+						tbody.appendChild(tr);
+					});
+				} else {
+					// Show message when no items
+					const tr = document.createElement('tr');
+					tr.innerHTML = `
+						<td colspan="6" class="text-center text-muted">No items in this purchase</td>
+					`;
+					tbody.appendChild(tr);
+				}
+				
+				// Populate totals
+				document.getElementById('modal-purchase-grand-total').textContent = `ksh ${data.totals.grand_total.toFixed(2)}`;
+				document.getElementById('modal-purchase-paid').textContent = `ksh ${data.totals.paid_amount.toFixed(2)}`;
+				document.getElementById('modal-purchase-due').textContent = `ksh ${data.totals.due_amount.toFixed(2)}`;
+				
+				// Remove loading spinner and show content
+				const loadingDiv = document.getElementById('modal-loading');
+				if (loadingDiv) {
+					loadingDiv.remove();
+				}
+				modalContent.style.display = 'block';
+				
+			} catch (err) {
+				console.error('Failed to load purchase details:', err);
+				
+				// Remove loading spinner
+				const loadingDiv = document.getElementById('modal-loading');
+				if (loadingDiv) {
+					loadingDiv.remove();
+				}
+				
+				// Display error message in modal
+				const modalBody = document.querySelector('#purchase-details-modal .modal-content');
+				const errorDiv = document.createElement('div');
+				errorDiv.className = 'alert alert-danger alert-dismissible fade show m-3';
+				errorDiv.innerHTML = `
+					<strong>Error:</strong> ${err.message || 'Failed to load purchase details. Please try again.'}
+					<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+				`;
+				
+				// Insert error message at the top of modal
+				modalBody.insertBefore(errorDiv, modalBody.firstChild);
+				
+				// Show modal content even on error so user can see the error
+				const modalContent = document.querySelector('#purchase-details-modal .invoice-box');
+				modalContent.style.display = 'block';
+			}
+		});
+</script>
+
+
+
+
+
+
+<!-- Edit Purchase -->
+<div class="modal fade" id="edit-purchase">
+	<div class="modal-dialog purchase modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<div class="page-title">
+					<h4>Edit Purchase</h4>
+				</div>
+				<button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<form action="https://dreamspos.dreamstechnologies.com/html/template/purchase-list.html">
+				<div class="modal-body">
+					<div class="row">
+						<div class="col-lg-4 col-md-6 col-sm-12">
+							<div class="mb-3 add-product">
+								<label class="form-label">Supplier Name<span class="text-danger ms-1">*</span></label>
+								<div class="row">
+									<div class="col-lg-10 col-sm-10 col-10">
+										<select class="select">
+											<option>Select</option>
+											<option>Apex Computers</option>
+											<option>Dazzle Shoes</option>
+											<option>Best Accessories</option>
+										</select>
+									</div>
+									<div class="col-lg-2 col-sm-2 col-2 ps-0">
+										<div class="add-icon tab">
+											<a href="javascript:void(0);"><i data-feather="plus-circle"
+													class="feather-plus-circles"></i></a>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-lg-4 col-md-6 col-sm-12">
+							<div class="mb-3">
+								<label class="form-label">Date<span class="text-danger ms-1">*</span></label>
+
+								<div class="input-groupicon calender-input">
+									<i data-feather="calendar" class="info-img"></i>
+									<input type="text" class="datetimepicker form-control p-2"
+										placeholder="24 Dec 2024">
+								</div>
+							</div>
+						</div>
+						<div class="col-lg-4 col-sm-12">
+							<div class="mb-3">
+								<label class="form-label">Supplier<span class="text-danger ms-1">*</span></label>
+								<input type="text" class="form-control" value="Elite Retail">
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-lg-12">
+							<div class="mb-3">
+								<label class="form-label">Product<span class="text-danger ms-1">*</span></label>
+								<input type="text" class="form-control" placeholder="Search Product">
+							</div>
+						</div>
+						<div class="col-lg-12">
+							<div class="modal-body-table">
+								<div class="table-responsive">
+									<table class="table">
+										<thead>
+											<tr>
+												<th class="bg-secondary-transparent p-3">Product Name</th>
+												<th class="bg-secondary-transparent p-3">QTY</th>
+												<th class="bg-secondary-transparent p-3">Purchase Price($) </th>
+												<th class="bg-secondary-transparent p-3">Discount($) </th>
+												<th class="bg-secondary-transparent p-3">Tax %</th>
+												<th class="bg-secondary-transparent p-3">Tax Amount($)</th>
+												<th class="text-end bg-secondary-transparent p-3">Unit Cost($)</th>
+												<th class="text-end bg-secondary-transparent p-3">Total Cost ($) </th>
+
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<td class="p-4">
+													<div class="d-flex align-items-center">
+														<a href="javascript:void(0);" class="avatar avatar-md me-2">
+															<img src="assets/img/products/stock-img-02.png"
+																alt="product">
+														</a>
+														<a href="javascript:void(0);">Nike Jordan</a>
+													</div>
+												</td>
+												<td class="p-4">
+													<div class="product-quantity">
+														<span class="quantity-btn">+<i data-feather="plus-circle"
+																class="plus-circle"></i></span>
+														<input type="text" class="quntity-input" value="10">
+														<span class="quantity-btn"><i data-feather="minus-circle"
+																class="feather-search"></i></span>
+													</div>
+												</td>
+												<td class="p-4">300</td>
+												<td class="p-4">50</td>
+												<td class="p-4">0</td>
+												<td class="p-4">0.00</td>
+												<td class="p-4">300</td>
+												<td class="p-4">600</td>
+
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-lg-12 float-md-right">
+							<div class="total-order m-2 mb-3 ms-auto">
+								<ul class="border-1 rounded-1">
+									<li class="border-0 border-bottom">
+										<h4 class="border-0">Order Tax</h4>
+										<h5>$ 0.00</h5>
+									</li>
+									<li class="border-0 border-bottom">
+										<h4 class="border-0">Discount</h4>
+										<h5>$ 0.00</h5>
+									</li>
+									<li class="border-0 border-bottom">
+										<h4 class="border-0">Shipping</h4>
+										<h5>$ 0.00</h5>
+									</li>
+									<li class="total border-0">
+										<h4 class="border-0">Grand Total</h4>
+										<h5>$1800.00</h5>
+									</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-lg-3 col-md-6 col-sm-12">
+							<div class="mb-3">
+								<label class="form-label">Order Tax<span class="text-danger ms-1">*</span></label>
+								<input type="text" class="form-control" value="0">
+							</div>
+						</div>
+						<div class="col-lg-3 col-md-6 col-sm-12">
+							<div class="mb-3">
+								<label class="form-label">Discount<span class="text-danger ms-1">*</span></label>
+								<input type="text" class="form-control" value="0">
+							</div>
+						</div>
+						<div class="col-lg-3 col-md-6 col-sm-12">
+							<div class="mb-3">
+								<label class="form-label">Shipping<span class="text-danger ms-1">*</span></label>
+								<input type="text" class="form-control" value="0">
+							</div>
+						</div>
+						<div class="col-lg-3 col-md-6 col-sm-12">
+							<div class="mb-3">
+								<label class="form-label">Status<span class="text-danger ms-1">*</span></label>
+								<select class="select">
+									<option>Select</option>
+									<option>Received</option>
+									<option>Pending</option>
+								</select>
+							</div>
+						</div>
+					</div>
+					<div class="row">
+
+						<div class="col-lg-12">
+							<div class="mb-3 summer-description-box">
+								<label class="form-label">Description</label>
+								<div id="summernote2">
+
+								</div>
+								<p class="mt-1">Maximum 60 Words</p>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn me-2 btn-secondary" data-bs-dismiss="modal">Cancel</button>
+					<button type="submit" class="btn btn-primary">Save Changes </button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+<!-- /Edit Purchase -->
+
+<!-- Purchase Details Modal -->
+<div class="modal fade" id="purchase-details-modal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog sales-details-modal">
+    <div class="modal-content">
+
+      <!-- Header -->
+      <div class="page-header p-4 border-bottom mb-0 d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">Purchase Details</h4>
+        <div>
+          <a data-bs-toggle="tooltip" data-bs-placement="top" title="Export PDF">
+            <img src="{%static 'landing/assets/img/icons/pdf.svg'%}" alt="pdf">
+          </a>
+          <a data-bs-toggle="tooltip" data-bs-placement="top" title="Print">
+            <img src="{%static 'landing/assets/img/icons/printer.svg'%}" alt="print">
+          </a>
+        </div>
+      </div>
+
+      <!-- Body/Form -->
+      <form>
+        <div class="card border-0">
+          <div class="card-body pb-0">
+
+            <div class="invoice-box" style="font-size:14px;line-height:24px;color:#555;">
+              <div class="row">
+
+                <!-- Supplier Info -->
+                <div class="col-md-4 mb-4">
+                  <h6>Supplier Info</h6>
+                  <div class="d-flex align-items-center mb-2">
+                    <img id="modal-supplier-image" class="avatar avatar-md me-2" src="{%static 'landing/assets/img/profiles/avatar-14.jpg'%}" alt="Supplier">
+                    <h5 id="modal-supplier-name" class="mb-0"></h5>
+                  </div>
+                  <p id="modal-supplier-country" class="mb-1"></p>
+                  <p class="mb-1">Email: <span id="modal-supplier-email"></span></p>
+                  <p class="mb-0">Phone: <span id="modal-supplier-phone"></span></p>
+                </div>
+
+                <!-- Purchase Info -->
+                <div class="col-md-4 mb-4">
+                  <h6>Purchase Info</h6>
+                  <p class="mb-1">Reference: <strong id="modal-purchase-ref"></strong></p>
+                  <p class="mb-1">Date: <span id="modal-purchase-date"></span></p>
+                  <p class="mb-1">Status: <span class="badge" id="modal-purchase-status"></span></p>
+                  <p class="mb-1">Payment Status: <span class="badge" id="modal-payment-status"></span></p>
+                  <p class="mb-0">Receive Date: <span id="modal-purchase-receive-date"></span></p>
+                </div>
+
+              </div>
+
+              <!-- Purchase Summary Table -->
+              <h5 class="mt-4">Purchase Summary</h5>
+              <div class="table-responsive mb-3">
+                <table class="table" id="modal-purchase-items-table">
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th>Unit Cost</th>
+                      <th>Quantity</th>
+                      <th>Discount</th>
+                      <th>Tax Amount</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- JS will inject rows here -->
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Totals -->
+              <div class="row">
+                <div class="col-lg-6 ms-auto">
+                  <ul class="list-unstyled">
+                    <li class="d-flex justify-content-between">
+                      <span>Grand Total</span><strong id="modal-purchase-grand-total"></strong>
+                    </li>
+                    <li class="d-flex justify-content-between">
+                      <span>Paid</span><strong id="modal-purchase-paid"></strong>
+                    </li>
+                    <li class="d-flex justify-content-between">
+                      <span>Due</span><strong id="modal-purchase-due"></strong>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+<!-- /Purchase Details Modal -->
+
+
+<!-- /Import Purchase -->
+<!-- delete modal -->
+<div class="modal fade" id="delete-modal">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="page-wrapper-new p-0">
+				<div class="content p-5 px-3 text-center">
+					<span class="rounded-circle d-inline-flex p-2 bg-danger-transparent mb-2"><i
+							class="ti ti-trash fs-24 text-danger"></i></span>
+					<h4 class="fs-20 fw-bold mb-2 mt-1">Delete Purchase</h4>
+					<p class="mb-0 fs-16">Are you sure you want to delete purchase?</p>
+					<div class="modal-footer-btn mt-3 d-flex justify-content-center">
+						<button type="button" class="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none"
+							data-bs-dismiss="modal">Cancel</button>
+						<button type="submit" class="btn btn-submit fs-13 fw-medium p-2 px-3">Yes Delete</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{%endblock%}

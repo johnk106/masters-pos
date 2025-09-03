@@ -1,0 +1,218 @@
+import logging
+from django.shortcuts      import render, redirect
+from django.contrib        import messages
+from django.core.paginator import Paginator
+from django.db.models      import Prefetch
+from .forms                import PurchaseForm, PurchaseItemFormSet
+from .models               import Purchase, PurchaseItem
+from django.utils.http import urlencode
+from .utils import _export_purchases_excel,_export_purchases_pdf
+from django.db.models import Q, F
+from django.http import JsonResponse
+from inventory.models import Product
+from django.utils import timezone
+from authentication.decorators import manager_or_above
+
+
+logger = logging.getLogger(__name__)
+@manager_or_above
+
+def get_products_ajax(request):
+    """AJAX endpoint to fetch products for purchase form dropdown"""
+    if request.method == 'GET':
+        products = Product.objects.select_related('category', 'sub_category').all()
+        product_data = [
+            {
+                'id': product.id,
+                'name': product.name,
+                'sku': product.sku or '',
+                'category': product.category.name if product.category else '',
+            }
+            for product in products
+        ]
+        return JsonResponse({'products': product_data})
+    
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+@manager_or_above
+
+def get_purchase_details_ajax(request, purchase_id):
+    """AJAX endpoint to fetch purchase details for view modal"""
+    try:
+        purchase = Purchase.objects.select_related('supplier').prefetch_related(
+            'items__product'
+        ).get(id=purchase_id)
+        
+        # Get all purchase items
+        purchase_items = purchase.items.all()
+        
+        data = {
+            'supplier': {
+                'name': purchase.supplier.name,
+                'email': purchase.supplier.email or '',
+                'phone': purchase.supplier.phone or '',
+                'country': purchase.supplier.country or '',
+                'image': purchase.supplier.image.url if purchase.supplier.image else '',
+            },
+            'purchase': {
+                'reference': purchase.reference,
+                'date': purchase.order_date.strftime('%Y-%m-%d'),
+                'status': purchase.get_status_display(),
+                'status_value': purchase.status,
+                'payment_status': purchase.get_payment_status_display(),
+                'payment_status_value': purchase.payment_status,
+                'receive_date': purchase.receive_date.strftime('%Y-%m-%d') if purchase.receive_date else 'Not received yet',
+            },
+            'items': [
+                {
+                    'product_name': item.product.name,
+                    'quantity': item.quantity,
+                    'unit_cost': float(item.unit_cost),
+                    'discount': float(item.discount),
+                    'tax_amount': float(item.tax_amount),
+                    'total_cost': float(item.total_cost),
+                }
+                for item in purchase_items
+            ],
+            'totals': {
+                'grand_total': float(purchase.grand_total),
+                'paid_amount': float(purchase.paid_amount),
+                'due_amount': float(purchase.due_amount),
+            },
+            'items_count': purchase_items.count(),
+        }
+        
+        return JsonResponse(data)
+        
+    except Purchase.DoesNotExist:
+        return JsonResponse({'error': 'Purchase not found'}, status=404)
+    except Exception as e:
+        logger.exception("Error fetching purchase details")
+        return JsonResponse({'error': str(e)}, status=500)
+@manager_or_above
+
+def edit_purchase(request, purchase_id):
+    """Handle editing an existing purchase"""
+    try:
+        purchase = Purchase.objects.get(id=purchase_id)
+        
+        if request.method == 'POST':
+            form = PurchaseForm(request.POST, instance=purchase)
+            formset = PurchaseItemFormSet(request.POST, instance=purchase)
+            
+            if form.is_valid() and formset.is_valid():
+                try:
+                    purchase = form.save(commit=False)
+                    # Handle order_date from POST data
+                    order_date = request.POST.get('order_date')
+                    if order_date:
+                        from datetime import datetime
+                        purchase.order_date = datetime.strptime(order_date, '%Y-%m-%d').date()
+                    purchase.save()
+                    formset.instance = purchase
+                    formset.save()
+                    messages.success(request, f"Purchase {purchase.reference} updated successfully.")
+                    return redirect('purchases:purchases')
+                except Exception as e:
+                    logger.exception("Error updating purchase")
+                    messages.error(request, f"An unexpected error occurred: {e}")
+            else:
+                # Report form errors
+                for field, errs in form.errors.items():
+                    for err in errs:
+                        messages.error(request, f"Purchase form error on '{field}': {err}")
+                for i, item_form in enumerate(formset.forms):
+                    for field, errs in item_form.errors.items():
+                        for err in errs:
+                            messages.error(request, f"Item #{i+1} error on '{field}': {err}")
+        
+        else:
+            form = PurchaseForm(instance=purchase)
+            formset = PurchaseItemFormSet(instance=purchase)
+        
+        return render(request, 'purchases/edit_purchase.html', {
+            'form': form,
+            'formset': formset,
+            'purchase': purchase,
+        })
+        
+    except Purchase.DoesNotExist:
+        messages.error(request, "Purchase not found.")
+        return redirect('purchases:purchases')
+@manager_or_above
+
+ 
+
+def purchases(request):
+    # Handle form POST (creating a new Purchase + items)
+    if request.method == 'POST':
+        form    = PurchaseForm(request.POST)
+        formset = PurchaseItemFormSet(request.POST)
+        if form.is_valid() and formset.is_valid():
+            try:
+                purchase = form.save(commit=False)
+                # Handle order_date from POST data
+                order_date = request.POST.get('order_date')
+                if order_date:
+                    from datetime import datetime
+                    purchase.order_date = datetime.strptime(order_date, '%Y-%m-%d').date()
+                purchase.save()
+                formset.instance = purchase
+                formset.save()
+                messages.success(request, f"Purchase {purchase.reference} created successfully.")
+                return redirect('purchases:purchases')
+            except Exception as e:
+                logger.exception("Error saving purchase + items")
+                messages.error(request, f"An unexpected error occurred: {e}")
+        else:
+            # Report form errors
+            for field, errs in form.errors.items():
+                for err in errs:
+                    messages.error(request, f"Purchase form error on '{field}': {err}")
+            for i, item_form in enumerate(formset.forms):
+                for field, errs in item_form.errors.items():
+                    for err in errs:
+                        messages.error(request, f"Item #{i+1} error on '{field}': {err}")
+    else:
+        form    = PurchaseForm()
+        formset = PurchaseItemFormSet(data=None, instance=Purchase())
+
+    # Build search & line-item queryset
+    search = request.GET.get('q', '').strip() or None
+    qs = Purchase.objects\
+    .select_related('supplier')\
+    .prefetch_related(
+        Prefetch(
+            'items',
+            queryset=PurchaseItem.objects.select_related('product')
+        )
+    )\
+    .order_by('-id')
+
+    if search:
+        qs = qs.filter(
+            Q(product__name__icontains=search) |
+            Q(purchase__reference__icontains=search) |
+            Q(purchase__supplier__name__icontains=search)
+        )
+
+    # Handle exports
+    export = request.GET.get('export')
+    if export == 'excel':
+        return _export_purchases_excel(qs)
+    if export == 'pdf':
+        return _export_purchases_pdf(qs)
+
+    # Paginate & render
+    paginator = Paginator(qs, 25)
+    page_obj  = paginator.get_page(request.GET.get('page', 1))
+
+    return render(request, 'purchases/purchases.html', {
+        'page_obj':         page_obj,
+        'form':             form,
+        'formset':          formset,
+        'search':           search,
+        'export_excel_url': f'?export=excel&search={search}',
+        'export_pdf_url':   f'?export=pdf&search={search}',
+        'today':            timezone.now().date(),
+
+    })

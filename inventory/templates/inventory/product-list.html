@@ -1,0 +1,263 @@
+{%extends 'landing/base.html'%}
+{%load static%}
+{%load humanize%}
+
+{%block head%}
+
+<title>Product list</title>
+
+{%endblock%}
+
+{%block body%}
+<div class="page-wrapper">
+	<div class="content">
+		<div class="page-header">
+			<div class="add-item d-flex">
+				<div class="page-title">
+					<h4 class="fw-bold">Product List</h4>
+					<h6>Manage your products</h6>
+					<br>
+					{% if messages %}
+					{% for message in messages %}
+					{% if message.tags == 'error' %}
+					<!-- Error Alert -->
+					<div class="alert alert-solid-danger alert-dismissible fade show">
+						{{message}}
+						<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"><i
+								class="fas fa-xmark"></i></button>
+					</div>
+					{% elif message.tags == 'success' %}
+					<!-- Success Alert -->
+					<div class="alert alert-solid-success alert-dismissible fade show">
+						{{message}}
+						<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"><i
+								class="fas fa-xmark"></i></button>
+					</div>
+					{% endif %}
+					{% endfor %}
+					{% endif %}
+				</div>
+			</div>
+			<ul class="table-top-head">
+				<li>
+					<a data-bs-toggle="tooltip" data-bs-placement="top" title="Pdf" href="{{ export_pdf_url }}"><img
+							src="{%static 'landing/assets/img/icons/pdf.svg'%}" alt="img"></a>
+				</li>
+				<li>
+					<a data-bs-toggle="tooltip" data-bs-placement="top" title="Excel" href="{{ export_excel_url }}"><img
+							src="{%static 'landing/assets/img/icons/excel.svg'%}" alt="img"></a>
+				</li>
+				<li>
+					<a href="{%url 'inventory:product-list'%}" data-bs-toggle="tooltip" data-bs-placement="top"
+						title="Refresh"><i class="ti ti-refresh"></i></a>
+				</li>
+				<li>
+					<a data-bs-toggle="tooltip" data-bs-placement="top" title="Collapse" id="collapse-header"><i
+							class="ti ti-chevron-up"></i></a>
+				</li>
+			</ul>
+			<div class="page-btn">
+				<a href="{%url 'inventory:create-product'%}" class="btn btn-primary"><i
+						class="ti ti-circle-plus me-1"></i>Add Product</a>
+			</div>
+			<!-- <div class="page-btn import">
+				<a href="#" class="btn btn-secondary color" data-bs-toggle="modal" data-bs-target="#view-notes"><i
+						data-feather="download" class="me-1"></i>Import Product</a>
+			</div> -->
+		</div>
+
+		<!-- /product list -->
+		<div class="card">
+			<div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
+				<form method="get">
+					<div>
+						<input type="text" name="search" value="{{ search }}" placeholder="Search…" />
+						<button class="btn-searchset"><i class="ti ti-search"></i></button>
+					</div>
+				</form>
+				<div class="d-flex table-dropdown my-xl-auto right-content align-items-center flex-wrap row-gap-3">
+					<div class="dropdown me-2">
+						<a href="javascript:void(0);"
+							class="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center"
+							data-bs-toggle="dropdown">
+							Category
+						</a>
+						<ul class="dropdown-menu  dropdown-menu-end p-3">
+							<li>
+								<a href="javascript:void(0);" class="dropdown-item rounded-1">Computers</a>
+							</li>
+							<li>
+								<a href="javascript:void(0);" class="dropdown-item rounded-1">Electronics</a>
+							</li>
+							<li>
+								<a href="javascript:void(0);" class="dropdown-item rounded-1">Shoe</a>
+							</li>
+							<li>
+								<a href="javascript:void(0);" class="dropdown-item rounded-1">Electronics</a>
+							</li>
+						</ul>
+					</div>
+					<div class="dropdown">
+						<a href="javascript:void(0);"
+							class="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center"
+							data-bs-toggle="dropdown">
+							Brand
+						</a>
+						<ul class="dropdown-menu  dropdown-menu-end p-3">
+							<li>
+								<a href="javascript:void(0);" class="dropdown-item rounded-1">Lenovo</a>
+							</li>
+							<li>
+								<a href="javascript:void(0);" class="dropdown-item rounded-1">Beats</a>
+							</li>
+							<li>
+								<a href="javascript:void(0);" class="dropdown-item rounded-1">Nike</a>
+							</li>
+							<li>
+								<a href="javascript:void(0);" class="dropdown-item rounded-1">Apple</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<div class="card-body p-0">
+				<div class="table-responsive">
+					<table class="table datatable">
+						<thead class="thead-light">
+							<tr>
+								<th class="no-sort">
+									<label class="checkboxs">
+										<input type="checkbox" id="select-all">
+										<span class="checkmarks"></span>
+									</label>
+								</th>
+								<th>SKU </th>
+								<th>Product Name</th>
+								<th>Category</th>
+								<th>Sub category</th>
+								<th>Price</th>
+								<th>Unit</th>
+								<th>Qty</th>
+								<!-- <th>Created By</th> -->
+								<th class="no-sort"></th>
+							</tr>
+						</thead>
+						<tbody>
+
+							{% for product in page_obj %}
+							<tr>
+								<td>
+									<label class="checkboxs">
+										<input type="checkbox">
+										<span class="checkmarks"></span>
+									</label>
+								</td>
+								<td>{{ product.sku }}</td>
+								<td>
+									<div class="d-flex align-items-center">
+										<a href="{% url 'inventory:product-details' product.id %}"
+											class="avatar avatar-md me-2">
+											<img src="{{ product.first_image_url }}" alt="product">
+										</a>
+										<a href="{% url 'inventory:product-details' product.id %}">{{ product.name}}</a>
+									</div>
+								</td>
+								<td>{{ product.category.name }}</td>
+								<td>{{ product.sub_category.name }}</td>
+								<td>ksh {{ product.stock.price | intcomma }}</td>
+								<td>{{ product.units.short_name }}</td>
+								<td>{{ product.stock.quantity }}</td>
+								<td class="action-table-data">
+									<div class="edit-delete-action">
+										<a class="me-2 edit-icon p-2"
+											href="{% url 'inventory:product-details' product.id %}">
+											<i data-feather="eye" class="action-eye"></i>
+										</a>
+										<a class="me-2 p-2" href="{% url 'inventory:edit-product' product.id %}">
+											<i data-feather="edit" class="feather-edit"></i>
+										</a>
+										<!-- DELETE BUTTON: add data-id and data-name -->
+										<a class="p-2 btn-delete-product" href="javascript:void(0);"
+											data-bs-toggle="modal" data-bs-target="#delete-product-modal"
+											data-id="{{ product.id }}" data-name="{{ product.name }}">
+											<i data-feather="trash-2" class="feather-trash-2"></i>
+										</a>
+									</div>
+								</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+		<!-- /product list -->
+	</div>
+	<div class="footer d-sm-flex align-items-center justify-content-between border-top bg-white p-3">
+		<p class="mb-0 text-gray-9">22025 &copy; Twoven Ecommerce. All Right Reserved</p>
+		<p>Designed &amp; Developed by <a href="javascript:void(0);" class="text-primary">Twoven</a></p>
+	</div>
+</div>
+
+
+<!-- Delete Product Modal -->
+<div class="modal fade" id="delete-product-modal" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content p-5">
+			<div class="modal-body text-center p-0">
+				<span class="rounded-circle d-inline-flex p-2 bg-danger-transparent mb-2">
+					<i class="ti ti-trash fs-24 text-danger"></i>
+				</span>
+				<h4 class="fs-20 text-gray-9 fw-bold mb-2 mt-1">Delete Product</h4>
+				<p class="text-gray-6 mb-0 fs-16">
+					Are you sure you want to delete <span id="delete-product-name" class="fw-medium"></span>?
+				</p>
+				<div class="d-flex justify-content-center mt-3">
+					<button type="button" class="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none"
+						data-bs-dismiss="modal">
+						Cancel
+					</button>
+
+					<!-- The form that submits the DELETE -->
+					<form id="deleteProductForm" method="POST" action="">
+						{% csrf_token %}
+						<button type="submit" class="btn btn-danger fs-13 fw-medium p-2 px-3">
+							Yes, Delete
+						</button>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+	document.addEventListener('DOMContentLoaded', function () {
+		var deleteProductModal = document.getElementById('delete-product-modal');
+		if (!deleteProductModal) return;
+
+		deleteProductModal.addEventListener('show.bs.modal', function (event) {
+			// The button that triggered the modal
+			var button = event.relatedTarget;
+
+			// Read data-id and data-name
+			var productId = button.getAttribute('data-id');
+			var productName = button.getAttribute('data-name');
+
+			// Fill in the product name in the confirmation text
+			var namePlaceholder = document.getElementById('delete-product-name');
+			if (namePlaceholder) {
+				namePlaceholder.textContent = productName;
+			}
+
+			// Set the form’s action to "/inventory/products/<id>/delete/"
+			var form = document.getElementById('deleteProductForm');
+			var deleteUrlTemplate = '{% url "inventory:delete-product" 0 %}';
+			// e.g. "/inventory/products/0/delete/"
+			var realDeleteUrl = deleteUrlTemplate.replace('/0/', '/' + productId + '/');
+			form.action = realDeleteUrl;
+		});
+	});
+</script>
+
+
+{%endblock%}

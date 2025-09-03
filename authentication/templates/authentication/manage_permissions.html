@@ -1,0 +1,125 @@
+{% extends 'landing/base.html' %}
+{% load static %}
+
+{% block head %}
+    <title>Manage Permissions - {{ role.name }}</title>
+{% endblock %}
+
+{% block body %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="add-item d-flex">
+                <div class="page-title">
+                    <h4>Manage Permissions</h4>
+                    <h6>Role: <span class="badge {{ role.get_color_class }} fw-medium">{{ role.name }}</span></h6>
+                    <br>
+                    {% if messages %}
+                        {% for message in messages %}
+                            {% if message.tags == 'error' %}
+                                <div class="alert alert-solid-danger alert-dismissible fade show">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+                                        <i class="fas fa-xmark"></i>
+                                    </button>
+                                </div>
+                            {% elif message.tags == 'success' %}
+                                <div class="alert alert-solid-success alert-dismissible fade show">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+                                        <i class="fas fa-xmark"></i>
+                                    </button>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="page-btn">
+                <a href="{% url 'authentication:roles' %}" class="btn btn-secondary">
+                    <i class="ti ti-arrow-left me-1"></i>Back to Roles
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5>Assign Permissions to {{ role.name }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{% url 'authentication:manage-permissions' role.id %}">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <button type="button" class="btn btn-outline-primary btn-sm me-2" onclick="selectAll()">
+                                Select All
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="deselectAll()">
+                                Deselect All
+                            </button>
+                        </div>
+                    </div>
+
+                    {% for content_type, permissions in permissions_by_type.items %}
+                        <div class="permission-group mb-4">
+                            <h6 class="text-primary mb-3">
+                                <i class="ti ti-shield me-2"></i>
+                                {{ content_type.name|title }} Permissions
+                            </h6>
+                            
+                            <div class="row">
+                                {% for permission in permissions %}
+                                    <div class="col-md-6 col-lg-4 mb-2">
+                                        <div class="form-check">
+                                            <input 
+                                                class="form-check-input" 
+                                                type="checkbox" 
+                                                name="permissions" 
+                                                value="{{ permission.id }}"
+                                                id="perm_{{ permission.id }}"
+                                                {% if permission in current_permissions %}checked{% endif %}
+                                            >
+                                            <label class="form-check-label" for="perm_{{ permission.id }}">
+                                                {{ permission.name }}
+                                                <small class="text-muted d-block">{{ permission.codename }}</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <hr>
+                    {% endfor %}
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="ti ti-device-floppy me-1"></i>Save Permissions
+                        </button>
+                        <a href="{% url 'authentication:roles' %}" class="btn btn-secondary ms-2">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function selectAll() {
+    const checkboxes = document.querySelectorAll('input[name="permissions"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = true;
+    });
+}
+
+function deselectAll() {
+    const checkboxes = document.querySelectorAll('input[name="permissions"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+    });
+}
+</script>
+
+{% endblock %}

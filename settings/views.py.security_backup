@@ -1,0 +1,9 @@
+from django.shortcuts import render
+
+# Create your views here.
+def profile_settings(request):
+    return render(request,'settings/profile-settings.html',{})
+
+def security_settings(request):
+    return render(request,'settings/security-settings.html',{})
+

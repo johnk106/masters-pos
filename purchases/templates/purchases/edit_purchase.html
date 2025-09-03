@@ -1,0 +1,346 @@
+{%extends 'landing/base.html'%}
+{%load static%}
+{%load humanize%}
+
+{%block head%}
+<title>Edit Purchase</title>
+{%endblock%}
+
+{%block body%}
+<div class="page-wrapper">
+	<div class="content">
+		<div class="page-header">
+			<div class="add-item d-flex">
+				<div class="page-title">
+					<h4 class="fw-bold">Edit Purchase</h4>
+					<h6>Modify purchase order details</h6>
+					<br>
+					{% if messages %}
+					{% for message in messages %}
+					{% if message.tags == 'error' %}
+					<div class="alert alert-solid-danger alert-dismissible fade show">
+						{{message}}
+						<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"><i class="fas fa-xmark"></i></button>
+					</div>
+					{% elif message.tags == 'success' %}
+					<div class="alert alert-solid-success alert-dismissible fade show">
+						{{message}}
+						<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"><i class="fas fa-xmark"></i></button>
+					</div>
+					{% endif %}
+					{% endfor %}
+					{% endif %}
+				</div>
+			</div>
+			<div class="page-btn">
+				<a href="{% url 'purchases:purchases' %}" class="btn btn-secondary">
+					<i data-feather="arrow-left" class="me-1"></i>Back to Purchases
+				</a>
+			</div>
+		</div>
+
+		<div class="card">
+			<div class="card-header">
+				<h5 class="card-title">Edit Purchase Order - {{ purchase.reference }}</h5>
+			</div>
+			<div class="card-body">
+				<form method="post" id="edit-purchase-form">
+					{% csrf_token %}
+					
+					<!-- Header fields -->
+					<div class="row mb-3">
+						<div class="col-md-6">
+							<label class="form-label">Supplier<span class="text-danger">*</span></label>
+							{{ form.supplier }}
+							{% if form.supplier.errors %}
+								<div class="text-danger mt-1">
+									{% for error in form.supplier.errors %}
+										<small>{{ error }}</small>
+									{% endfor %}
+								</div>
+							{% endif %}
+						</div>
+						<div class="col-md-6">
+							<label class="form-label">Date<span class="text-danger">*</span></label>
+							<input type="date" class="form-control p-2" name="order_date" value="{{ purchase.order_date|date:'Y-m-d' }}" required>
+						</div>
+					</div>
+
+					<!-- Hidden template for new line items -->
+					<table style="display: none;">
+						<tbody id="purchase-item-template">
+							<tr>
+								{% with empty=formset.empty_form %}
+								<td>{{ empty.product }}</td>
+								<td>{{ empty.quantity }}</td>
+								<td>{{ empty.unit_cost }}</td>
+								<td>{{ empty.discount }}</td>
+								<td>{{ empty.tax_amount }}</td>
+								<td>
+									<button type="button" class="btn btn-sm btn-danger remove-row">
+										<i class="fas fa-trash"></i>
+									</button>
+								</td>
+								{% endwith %}
+							</tr>
+						</tbody>
+					</table>
+
+					<!-- Line items table -->
+					<div class="table-responsive mb-3">
+						{{ formset.management_form }}
+						<table class="table table-bordered" id="purchase-items-table">
+							<thead>
+								<tr>
+									<th>Product</th>
+									<th>Qty</th>
+									<th>Purchase Price ($)</th>
+									<th>Discount ($)</th>
+									<th>Tax (%)</th>
+									<th>Action</th>
+								</tr>
+							</thead>
+							<tbody>
+								{% for form in formset.forms %}
+								{% if form.instance.pk %}
+								<tr data-form-index="{{ forloop.counter0 }}">
+									{{ form.id }}
+									<td>
+										{{ form.product }}
+										{{ form.product.errors }}
+									</td>
+									<td>
+										{{ form.quantity }}
+										{{ form.quantity.errors }}
+									</td>
+									<td>
+										{{ form.unit_cost }}
+										{{ form.unit_cost.errors }}
+									</td>
+									<td>
+										{{ form.discount }}
+										{{ form.discount.errors }}
+									</td>
+									<td>
+										{{ form.tax_amount }}
+										{{ form.tax_amount.errors }}
+									</td>
+									<td>
+										<button type="button" class="btn btn-sm btn-danger remove-existing-row" data-form-index="{{ forloop.counter0 }}">
+											<i class="fas fa-trash"></i>
+										</button>
+										{{ form.DELETE }}
+									</td>
+								</tr>
+								{% endif %}
+								{% endfor %}
+							</tbody>
+						</table>
+						<button type="button" class="btn btn-sm btn-link" id="add-purchase-row">
+							Add Another Product
+						</button>
+					</div>
+
+					<!-- Footer fields -->
+					<div class="row mb-3">
+						<div class="col-md-3">
+							{{ form.order_tax.label_tag }}
+							{{ form.order_tax }}
+							{{ form.order_tax.errors }}
+						</div>
+						<div class="col-md-3">
+							{{ form.discount.label_tag }}
+							{{ form.discount }}
+							{{ form.discount.errors }}
+						</div>
+						<div class="col-md-3">
+							{{ form.shipping.label_tag }}
+							{{ form.shipping }}
+							{{ form.shipping.errors }}
+						</div>
+						<div class="col-md-3">
+							{{ form.status.label_tag }}
+							{{ form.status }}
+							{{ form.status.errors }}
+						</div>
+					</div>
+
+					<div class="row mb-3">
+						<div class="col-md-6">
+							{{ form.payment_status.label_tag }}<span class="text-danger">*</span>
+							{{ form.payment_status }}
+							{% if form.payment_status.errors %}
+								<div class="text-danger mt-1">
+									{% for error in form.payment_status.errors %}
+										<small>{{ error }}</small>
+									{% endfor %}
+								</div>
+							{% endif %}
+						</div>
+					</div>
+
+					<div class="mb-3">
+						{{ form.description.label_tag }}
+						{{ form.description }}
+						{{ form.description.errors }}
+					</div>
+
+					<div class="d-flex justify-content-end">
+						<a href="{% url 'purchases:purchases' %}" class="btn btn-secondary me-2">Cancel</a>
+						<button type="submit" class="btn btn-primary" id="update-purchase-btn">
+							<span class="btn-text">Update Purchase</span>
+							<span class="btn-loading" style="display: none;">
+								<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+								Updating...
+							</span>
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	document.addEventListener('DOMContentLoaded', () => {
+		const addBtn = document.getElementById('add-purchase-row');
+		const totalForms = document.querySelector('input[name="{{ formset.prefix }}-TOTAL_FORMS"]');
+		const tbody = document.querySelector('#purchase-items-table tbody');
+		const template = document.querySelector('#purchase-item-template tr');
+		let productsData = [];
+
+		// Fetch products from the server
+		async function fetchProducts() {
+			try {
+				const response = await fetch('{% url "purchases:get_products_ajax" %}');
+				const data = await response.json();
+				if (data.products) {
+					productsData = data.products;
+				}
+			} catch (error) {
+				console.error('Error fetching products:', error);
+			}
+		}
+
+		// Populate product dropdown with options
+		function populateProductDropdown(selectElement) {
+			// Clear existing options
+			selectElement.innerHTML = '<option value="">Select a product</option>';
+			
+			if (productsData.length === 0) {
+				const option = document.createElement('option');
+				option.value = '';
+				option.textContent = 'No products available';
+				option.disabled = true;
+				selectElement.appendChild(option);
+				return;
+			}
+			
+			// Add product options
+			productsData.forEach(product => {
+				const option = document.createElement('option');
+				option.value = product.id;
+				option.textContent = `${product.name} ${product.sku ? '(' + product.sku + ')' : ''}`;
+				selectElement.appendChild(option);
+			});
+		}
+
+		function addRow() {
+			const idx = parseInt(totalForms.value, 10);
+			const row = template.cloneNode(true);
+
+			// Remove any data-form-index attribute (this is for new rows)
+			row.removeAttribute('data-form-index');
+
+			row.querySelectorAll('input, select').forEach(el => {
+				const name = el.name.replace('__prefix__', idx);
+				el.name = name;
+				el.id = name;
+				if (el.tagName === 'INPUT') {
+					el.value = '';
+				} else if (el.tagName === 'SELECT' && el.name.includes('product')) {
+					// Populate the product dropdown
+					populateProductDropdown(el);
+				}
+			});
+
+			// Change the button class for new rows
+			const removeBtn = row.querySelector('.remove-row');
+			if (removeBtn) {
+				removeBtn.className = 'btn btn-sm btn-danger remove-row';
+			}
+
+			tbody.appendChild(row);
+			totalForms.value = idx + 1;
+		}
+
+		// Load products on page load
+		fetchProducts();
+
+		// Initialize the form count based on existing items
+		const existingRows = tbody.querySelectorAll('tr[data-form-index]');
+		const existingCount = existingRows.length;
+		if (parseInt(totalForms.value, 10) < existingCount) {
+			totalForms.value = existingCount;
+		}
+
+		// Add row on button click
+		addBtn.addEventListener('click', addRow);
+
+		// Handle removal of new rows
+		tbody.addEventListener('click', (e) => {
+			if (e.target.closest('.remove-row')) {
+				const row = e.target.closest('tr');
+				row.remove();
+				
+				// Update form count
+				const currentCount = parseInt(totalForms.value, 10);
+				if (currentCount > 0) {
+					totalForms.value = currentCount - 1;
+				}
+				
+				// Re-index remaining new rows only
+				const newRows = tbody.querySelectorAll('tr:not([data-form-index])');
+				const existingRowsCount = tbody.querySelectorAll('tr[data-form-index]').length;
+				newRows.forEach((row, index) => {
+					const newIndex = existingRowsCount + index;
+					row.querySelectorAll('input, select').forEach(el => {
+						const name = el.name.replace(/\d+/, newIndex);
+						el.name = name;
+						el.id = name;
+					});
+				});
+			}
+		});
+
+		// Handle removal of existing rows (mark for deletion)
+		tbody.addEventListener('click', (e) => {
+			if (e.target.closest('.remove-existing-row')) {
+				const button = e.target.closest('.remove-existing-row');
+				const row = button.closest('tr');
+				const formIndex = button.getAttribute('data-form-index');
+				
+				// Find and check the DELETE checkbox
+				const deleteField = row.querySelector(`input[name="items-${formIndex}-DELETE"]`);
+				if (deleteField) {
+					deleteField.checked = true;
+					// Hide the row visually
+					row.style.display = 'none';
+				}
+			}
+		});
+	});
+
+	// Form submission loading state
+	document.getElementById('edit-purchase-form').addEventListener('submit', function() {
+		const submitBtn = document.getElementById('update-purchase-btn');
+		const btnText = submitBtn.querySelector('.btn-text');
+		const btnLoading = submitBtn.querySelector('.btn-loading');
+		
+		btnText.style.display = 'none';
+		btnLoading.style.display = 'inline-block';
+		submitBtn.disabled = true;
+	});
+</script>
+
+{%endblock%}

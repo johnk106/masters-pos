@@ -1,0 +1,207 @@
+{% extends 'landing/base.html' %}
+{% load static %}
+
+{% block head %}
+  <title>Profile</title>
+{% endblock %}
+
+{% block body %}
+<div class="page-wrapper">
+  <div class="content">
+    <div class="page-header">
+      <div class="page-title">
+        <h4>Profile</h4>
+        <h6>User Profile</h6>
+      </div>
+    </div>
+
+    {% if messages %}
+      {% for message in messages %}
+        {% if message.tags == 'error' %}
+          <div class="alert alert-solid-danger alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% elif message.tags == 'success' %}
+          <div class="alert alert-solid-success alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+
+    <!-- Profile Form Card -->
+    <div class="card">
+      <div class="card-header">
+        <h4>Profile</h4>
+      </div>
+      <div class="card-body profile-body">
+        <form method="POST" enctype="multipart/form-data" action="{% url 'authentication:profile' %}">
+          {% csrf_token %}
+          <h5 class="mb-2"><i class="ti ti-user text-primary me-1"></i>Basic Information</h5>
+
+          <!-- Avatar upload -->
+          <div class="profile-pic-upload image-field mb-4">
+            <div class="profile-pic p-2">
+              {% if profile.avatar %}
+                <img
+                  src="{{ profile.avatar.url }}"
+                  class="object-fit-cover h-100 rounded-1"
+                  alt="{{ user.username }}"
+                  id="avatar-preview"
+                >
+              {% else %}
+                <img
+                  src="{% static 'landing/assets/img/users/placeholder.png' %}"
+                  class="object-fit-cover h-100 rounded-1"
+                  alt="{{ user.username }}"
+                  id="avatar-preview"
+                >
+              {% endif %}
+              <button type="button" class="close rounded-1 btn-remove-avatar" onclick="document.getElementById('id_avatar').value=''; document.getElementById('avatar-preview').src='{% static 'landing/assets/img/users/placeholder.png' %}';">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="mb-3">
+              <div class="image-upload mb-0 d-inline-flex">
+                <input type="file" name="avatar" id="id_avatar" accept="image/*" onchange="previewAvatar(this);">
+                <div class="btn btn-primary fs-13 ms-2">Change Image</div>
+              </div>
+              <p class="mt-2">Upload an image below 2 MB (JPG, PNG)</p>
+            </div>
+          </div>
+
+          <div class="row">
+            <!-- First Name -->
+            <div class="col-lg-6 col-sm-12">
+              <div class="mb-3">
+                <label class="form-label">First Name<span class="text-danger ms-1">*</span></label>
+                <input
+                  type="text"
+                  name="first_name"
+                  class="form-control"
+                  value="{{ user.first_name }}"
+                  required
+                >
+              </div>
+            </div>
+
+            <!-- Last Name -->
+            <div class="col-lg-6 col-sm-12">
+              <div class="mb-3">
+                <label class="form-label">Last Name<span class="text-danger ms-1">*</span></label>
+                <input
+                  type="text"
+                  name="last_name"
+                  class="form-control"
+                  value="{{ user.last_name }}"
+                  required
+                >
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div class="col-lg-6 col-sm-12">
+              <div class="mb-3">
+                <label class="form-label">Email<span class="text-danger ms-1">*</span></label>
+                <input
+                  type="email"
+                  name="email"
+                  class="form-control"
+                  value="{{ user.email }}"
+                  required
+                >
+              </div>
+            </div>
+
+            <!-- Phone -->
+            <div class="col-lg-6 col-sm-12">
+              <div class="mb-3">
+                <label class="form-label">Phone Number<span class="text-danger ms-1">*</span></label>
+                <input
+                  type="text"
+                  name="phone"
+                  class="form-control"
+                  value="{{ profile.phone }}"
+                  required
+                >
+              </div>
+            </div>
+
+            <!-- Username -->
+            <div class="col-lg-6 col-sm-12">
+              <div class="mb-3">
+                <label class="form-label">Username<span class="text-danger ms-1">*</span></label>
+                <input
+                  type="text"
+                  name="username"
+                  class="form-control"
+                  value="{{ user.username }}"
+                  required
+                >
+              </div>
+            </div>
+
+            <!-- Password (leave blank to keep current) -->
+            <div class="col-lg-6 col-sm-12">
+              <div class="mb-3">
+                <label class="form-label">New Password</label>
+                <div class="pass-group">
+                  <input
+                    type="password"
+                    name="password"
+                    class="pass-input form-control"
+                    placeholder="Enter new password"
+                  >
+                  <i class="ti ti-eye-off toggle-password"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="col-lg-6 col-sm-12">
+              <div class="mb-3">
+                <label class="form-label">Confirm Password</label>
+                <div class="pass-group">
+                  <input
+                    type="password"
+                    name="confirm_password"
+                    class="pass-input form-control"
+                    placeholder="Confirm new password"
+                  >
+                  <i class="ti ti-eye-off toggle-password"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Form Buttons -->
+            <div class="col-12 d-flex justify-content-end mt-4">
+              <a href="javascript:location.reload();" class="btn btn-secondary me-2 shadow-none">Cancel</a>
+              <button type="submit" class="btn btn-primary shadow-none">Save Changes</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer d-sm-flex align-items-center justify-content-between border-top bg-white p-3">
+    <p class="mb-0 text-gray-9">2025 &copy; TwovenPOS. All Rights Reserved</p>
+    <p>Designed &amp; Developed by <a href="javascript:void(0);" class="text-primary">Twoven</a></p>
+  </div>
+</div>
+
+<!-- JS to preview the newly selected avatar before upload -->
+<script>
+function previewAvatar(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('avatar-preview').src = e.target.result;
+    }
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+</script>
+{% endblock %}

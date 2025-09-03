@@ -1,0 +1,211 @@
+{%extends 'landing/base.html'%}
+{%load static%}
+
+
+
+{%block head%}
+
+<title>Low Stocks</title>
+
+{%endblock%}
+
+
+
+{%block body%}
+<div class="page-wrapper">
+	<div class="content">
+		<div class="page-header">
+			<div class="page-title me-auto">
+				<h4 class="fw-bold">Low Stocks</h4>
+				<h6>Manage your low stocks</h6>
+			</div>
+			<ul class="table-top-head low-stock-top-head">
+				<li>
+					<a data-bs-toggle="tooltip" data-bs-placement="top" title="Pdf" href="{{ export_pdf_url }}"><img
+							src="{%static 'landing/assets/img/icons/pdf.svg'%}" alt="img"></a>
+				</li>
+				<li>
+					<a data-bs-toggle="tooltip" data-bs-placement="top" title="Excel" href="{{ export_excel_url }}"><img
+							src="{%static 'landing/assets/img/icons/excel.svg'%}" alt="img"></a>
+				</li>
+				<li>
+					<a data-bs-toggle="tooltip" data-bs-placement="top" title="Refresh" href="{%url 'inventory:low-stocks'%}"><i
+							class="ti ti-refresh"></i></a>
+				</li>
+				<li>
+					<a data-bs-toggle="tooltip" data-bs-placement="top" title="Collapse" id="collapse-header"><i
+							class="ti ti-chevron-up"></i></a>
+				</li>
+				<li>
+					<a href="#" class="btn btn-secondary w-auto shadow-none" data-bs-toggle="modal"
+						data-bs-target="#send-email"><i data-feather="mail" class="feather-mail"></i>Send Email</a>
+				</li>
+			</ul>
+		</div>
+		<div class="mb-4">
+			<div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+				<ul class="nav nav-pills low-stock-tab d-flex me-2 mb-0" id="pills-tab" role="tablist">
+					<li class="nav-item" role="presentation">
+						<button class="nav-link active" id="pills-home-tab" data-bs-toggle="pill"
+							data-bs-target="#pills-home" type="button" role="tab" aria-controls="pills-home"
+							aria-selected="true">Low Stocks</button>
+					</li>
+					<!-- <li class="nav-item" role="presentation">
+							  <button class="nav-link" id="pills-profile-tab" data-bs-toggle="pill" data-bs-target="#pills-profile" type="button" role="tab" aria-controls="pills-profile" aria-selected="false">Out of Stocks</button>
+							</li> -->
+
+				</ul>
+				<div class="notify d-flex bg-white p-1 px-2 border rounded">
+					<div class="status-toggle text-secondary d-flex justify-content-between align-items-center">
+						<input type="checkbox" id="user2" class="check" checked="">
+						<label for="user2" class="checktoggle me-2">checkbox</label>
+						Notify
+					</div>
+				</div>
+			</div>
+			<div class="tab-content" id="pills-tabContent">
+				<div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
+					<!-- /product list -->
+					<div class="card">
+						<div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
+							<form method="get">
+					<div>
+						<input type="text" name="search" value="{{ search }}" placeholder="Search…" />
+						<button class="btn-searchset"><i class="ti ti-search"></i></button>
+					</div>
+				</form>
+							<!-- 						
+										<div class="d-flex table-dropdown my-xl-auto right-content align-items-center flex-wrap row-gap-3">
+											<div class="dropdown me-2">
+												<a href="javascript:void(0);" class="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown">
+													Warehouse
+												</a>
+												<ul class="dropdown-menu  dropdown-menu-end p-3">
+													<li>
+														<a href="javascript:void(0);" class="dropdown-item rounded-1">Lenovo IdeaPad 3</a>
+													</li>
+													<li>
+														<a href="javascript:void(0);" class="dropdown-item rounded-1">Beats Pro </a>
+													</li>
+													<li>
+														<a href="javascript:void(0);" class="dropdown-item rounded-1">Nike Jordan</a>
+													</li>
+													<li>
+														<a href="javascript:void(0);" class="dropdown-item rounded-1">Apple Series 5 Watch</a>
+													</li>
+												</ul>
+											</div>
+											<div class="dropdown me-2">
+												<a href="javascript:void(0);" class="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown">
+													Store
+												</a>
+												<ul class="dropdown-menu  dropdown-menu-end p-3">
+													<li>
+														<a href="javascript:void(0);" class="dropdown-item rounded-1">James Kirwin</a>
+													</li>
+													<li>
+														<a href="javascript:void(0);" class="dropdown-item rounded-1">Francis Chang</a>
+													</li>
+													<li>
+														<a href="javascript:void(0);" class="dropdown-item rounded-1">Antonio Engle</a>
+													</li>
+													<li>
+														<a href="javascript:void(0);" class="dropdown-item rounded-1">Leo Kelly</a>
+													</li>
+												</ul>
+											</div>
+											<div class="dropdown">
+												<a href="javascript:void(0);" class="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown">
+													Category
+												</a>
+												<ul class="dropdown-menu  dropdown-menu-end p-3">
+													<li>
+														<a href="javascript:void(0);" class="dropdown-item rounded-1">Computers</a>
+													</li>
+													<li>
+														<a href="javascript:void(0);" class="dropdown-item rounded-1">Electronics</a>
+													</li>
+													<li>
+														<a href="javascript:void(0);" class="dropdown-item rounded-1">Shoe</a>
+													</li>
+													<li>
+														<a href="javascript:void(0);" class="dropdown-item rounded-1">Electronics</a>
+													</li>
+												</ul>
+											</div>
+										</div> -->
+						</div>
+						<div class="card-body p-0">
+							<div class="table-responsive">
+								<table class="table ">
+									<thead class="thead-light">
+										<tr>
+											<th class="no-sort">
+												<label class="checkboxs">
+													<input type="checkbox" id="select-all">
+													<span class="checkmarks"></span>
+												</label>
+											</th>
+											<th>Product Name</th>
+											<th>Category</th>
+											<th>SKU</th>
+											<th>Qty</th>
+											<th>Qty Alert</th>
+											<th class="no-sort"></th>
+										</tr>
+									</thead>
+									<tbody>
+										{%for product in page_obj%}
+										<tr>
+											<td>
+												<label class="checkboxs">
+													<input type="checkbox">
+													<span class="checkmarks"></span>
+												</label>
+											</td>
+
+											<td>
+												<div class="d-flex align-items-center">
+													<a href="javascript:void(0);" class="avatar avatar-md me-2">
+														<img src="{{product.first_image_url}}" alt="product">
+													</a>
+													<a href="javascript:void(0);">{{stock.product.name}}</a>
+												</div>
+											</td>
+											<td>{{product.category.name}}</td>
+											<td>{{product.sku}}</td>
+											<td>{{product.stock.quantity}}</td>
+											<td>{{product.stock.quantity_alert}}</td>
+											<td class="action-table-data">
+												<div class="edit-delete-action">
+													<a  class="me-2 p-2" href="{%url 'inventory:edit-product' product.id %}">
+														<i data-feather="edit" class="feather-edit"></i>
+													</a>
+													<!-- <a data-bs-toggle="modal" data-bs-target="#delete-modal" class="p-2"
+														href="javascript:void(0);">
+														<i data-feather="trash-2" class="feather-trash-2"></i>
+													</a> -->
+												</div>
+
+											</td>
+										</tr>
+										{%endfor%}
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+					<!-- /product list -->
+				</div>
+
+
+			</div>
+		</div>
+	</div>
+	<div class="footer d-sm-flex align-items-center justify-content-between border-top bg-white p-3">
+		<p class="mb-0 text-gray-9">22025 &copy; Twoven Ecommerce. All Right Reserved</p>
+		<p>Designed &amp; Developed by <a href="javascript:void(0);" class="text-primary">Twoven</a></p>
+	</div>
+</div>
+
+{%endblock%}

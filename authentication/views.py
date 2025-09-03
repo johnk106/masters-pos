@@ -1,0 +1,395 @@
+from django.shortcuts import render,get_object_or_404
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login,logout
+from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.models import User
+from django.contrib import messages
+from django.urls import reverse
+from django.http import HttpResponseRedirect
+from django.views.decorators.http import require_POST
+from .models import *
+from django.contrib.auth import update_session_auth_hash
+from .decorators import admin_or_manager_required, admin_only
+from django.contrib.auth.decorators import login_required
+
+# Create your views here.
+@admin_or_manager_required
+def users(request):
+    # Fetch all users
+    all_users = User.objects.all().order_by('username')
+    # Fetch all roles for the dropdown
+    roles = Role.objects.filter(is_active=True).order_by('name')
+    return render(request, 'authentication/users.html', {
+        'users': all_users,
+        'roles': roles
+    })
+
+
+@admin_only
+def roles(request):
+    # Fetch all roles and their permissions
+    all_roles = Role.objects.all().order_by('name')
+    return render(request,'authentication/roles.html',{
+        'roles': all_roles
+    })
+@login_required
+
+def profile(request):
+    """
+    If GET: render current user’s User + UserProfile data into the form.
+    If POST: validate and update both User and UserProfile, including avatar upload.
+    """
+    user = request.user
+
+    # Ensure a UserProfile exists; create if missing
+    try:
+        profile = user.userprofile
+    except UserProfile.DoesNotExist:
+        profile = UserProfile(user=user)
+        profile.save()
+
+    if request.method == "POST":
+        # 1) Gather submitted values
+        first_name      = request.POST.get("first_name", "").strip()
+        last_name       = request.POST.get("last_name", "").strip()
+        email           = request.POST.get("email", "").strip()
+        phone           = request.POST.get("phone", "").strip()
+        username        = request.POST.get("username", "").strip()
+        password        = request.POST.get("password", "")
+        confirm_password= request.POST.get("confirm_password", "")
+        avatar_file     = request.FILES.get("avatar", None)
+
+        # 2) Basic validation
+        if not first_name or not last_name or not email or not phone or not username:
+            messages.error(request, "First name, last name, email, phone, and username are required.")
+        elif User.objects.exclude(id=user.id).filter(username__iexact=username).exists():
+            messages.error(request, f"Username '{username}' is already taken.")
+        elif User.objects.exclude(id=user.id).filter(email__iexact=email).exists():
+            messages.error(request, f"Email '{email}' is already in use.")
+        elif password and password != confirm_password:
+            messages.error(request, "Passwords do not match.")
+        else:
+            # 3) Update User fields
+            user.first_name = first_name
+            user.last_name  = last_name
+            user.email      = email
+            user.username   = username
+            if password:
+                user.set_password(password)
+            user.save()
+
+            # If password changed, keep the session alive
+            if password:
+                update_session_auth_hash(request, user)
+
+            # 4) Update UserProfile fields
+            profile.phone = phone
+            if avatar_file:
+                profile.avatar = avatar_file
+            profile.save()
+
+            messages.success(request, "Profile updated successfully.")
+            return redirect("authentication:profile")
+
+    # On GET or invalid POST, render the form with existing values
+    context = {
+        "user": user,
+        "profile": profile,
+    }
+    return render(request, "authentication/profile.html", context)
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('landing:homepage')  
+
+    if request.method == "POST":
+        identifier = request.POST.get("identifier", "").strip()
+        password   = request.POST.get("password", "")
+
+        user = None
+        if identifier and password:
+            user = authenticate(request, username=identifier, password=password)
+
+            if user is None:
+                try:
+                    user_obj = User.objects.get(email__iexact=identifier)
+                    user = authenticate(request, username=user_obj.username, password=password)
+                except User.DoesNotExist:
+                    user = None
+
+        if user is not None:
+            if user.is_active:
+                login(request, user)
+                return redirect('landing:homepage')
+            else:
+                messages.error(request, "This account is inactive.")
+        else:
+            messages.error(request, "Invalid credentials. Please try again.")
+
+    return render(request, "authentication/login.html", {})
+
+
+#
+#
+def is_superuser(user):
+    return user.is_authenticated and user.is_superuser
+
+@admin_or_manager_required
+def create_user_view(request):
+   
+    if request.method == "POST":
+        username    = request.POST.get("username", "").strip()
+        email       = request.POST.get("email", "").strip()
+        password    = request.POST.get("password", "")
+        phone       = request.POST.get("phone", "").strip()
+        role_id     = request.POST.get("role", "").strip()
+        avatar_file = request.FILES.get("avatar", None)
+        status_flag = request.POST.get("status", None)  # "on" if checked
+
+        # Basic validation
+        if not username or not email or not password or not phone or not role_id:
+            messages.error(request, "All fields except avatar are required.")
+            return redirect('authentication:users')
+        
+        elif User.objects.filter(username__iexact=username).exists():
+            messages.error(request, f"Username '{username}' is already taken.")
+            return redirect('authentication:users')
+        
+        elif User.objects.filter(email__iexact=email).exists():
+            messages.error(request, f"Email '{email}' is already linked to another account.")
+            return redirect('authentication:users')
+        
+        else:
+            # Get the role object
+            try:
+                role = Role.objects.get(id=role_id)
+            except Role.DoesNotExist:
+                messages.error(request, "Invalid role selected.")
+                return redirect('authentication:users')
+            
+            # Create the user
+            new_user = User(username=username, email=email, is_active=True)
+            new_user.set_password(password)
+            new_user.save()
+
+            # Create the UserProfile for this user
+            profile = UserProfile.objects.create(
+                user=new_user,
+                phone=phone,
+                role=role,
+                is_active=(status_flag == "on")
+            )
+            if avatar_file:
+                profile.avatar = avatar_file
+                profile.save()
+
+            messages.success(request, f"User '{username}' created successfully.")
+            return redirect('authentication:users')
+
+    return redirect('authentication:users')
+
+def logout_view(request):
+    
+    logout(request)
+    return redirect('authentication:login')
+
+
+@admin_or_manager_required
+def edit_user_view(request, user_id):
+    """
+    Superuser only. Edits an existing User and their UserProfile (creating a profile if needed).
+    """
+    user = get_object_or_404(User, id=user_id)
+
+    # Attempt to fetch the profile; if none exists, create a new one (unsaved for now)
+    try:
+        profile = user.userprofile
+    except UserProfile.DoesNotExist:
+        profile = UserProfile(user=user)
+
+    if request.method == "POST":
+        username    = request.POST.get("username", "").strip()
+        email       = request.POST.get("email", "").strip()
+        phone       = request.POST.get("phone", "").strip()
+        role_id     = request.POST.get("role", "").strip()
+        avatar_file = request.FILES.get("avatar", None)
+        status_flag = request.POST.get("status", None)  # "on" if checked
+
+        pwd          = request.POST.get("password", "")
+        confirm_pwd  = request.POST.get("confirm_password", "")
+
+        # Basic validation
+        if not username or not email or not phone or not role_id:
+            messages.error(request, "Username, email, phone, and role are required.")
+        elif User.objects.exclude(id=user_id).filter(username__iexact=username).exists():
+            messages.error(request, f"Username '{username}' is already taken.")
+        elif User.objects.exclude(id=user_id).filter(email__iexact=email).exists():
+            messages.error(request, f"Email '{email}' is already in use by another account.")
+        elif pwd and pwd != confirm_pwd:
+            messages.error(request, "Passwords do not match.")
+        else:
+            # Get the role object
+            try:
+                role = Role.objects.get(id=role_id)
+            except Role.DoesNotExist:
+                messages.error(request, "Invalid role selected.")
+                return redirect("authentication:users")
+            
+            # Update User fields
+            user.username = username
+            user.email = email
+            if pwd:
+                user.set_password(pwd)
+            user.save()
+
+            # Update (or create) UserProfile fields
+            profile.phone = phone
+            profile.role = role
+            profile.is_active = (status_flag == "on")
+            if avatar_file:
+                profile.avatar = avatar_file
+            profile.save()
+
+            messages.success(request, f"User '{username}' updated successfully.")
+            return redirect("authentication:users")
+
+    return redirect("authentication:users")
+
+
+
+# views.py (continuing)
+
+@admin_or_manager_required
+@require_POST
+def delete_user_view(request, user_id):
+    """
+    Superuser only. Deletes the specified User and cascades to UserProfile.
+    """
+    user = get_object_or_404(User, id=user_id)
+    username = user.username
+    user.delete()
+    messages.success(request, f"User '{username}' has been deleted.")
+    return redirect("authentication:users")
+
+
+@admin_only
+def create_role_view(request):
+    """
+    Superuser only. Creates a new role.
+    """
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        description = request.POST.get("description", "").strip()
+        is_active = request.POST.get("is_active", None) == "on"
+        
+        if not name:
+            messages.error(request, "Role name is required.")
+            return redirect('authentication:roles')
+        
+        if Role.objects.filter(name__iexact=name).exists():
+            messages.error(request, f"Role '{name}' already exists.")
+            return redirect('authentication:roles')
+        
+        role = Role.objects.create(
+            name=name,
+            description=description,
+            is_active=is_active
+        )
+        
+        messages.success(request, f"Role '{name}' created successfully.")
+        return redirect('authentication:roles')
+    
+    return redirect('authentication:roles')
+
+
+@admin_only
+def edit_role_view(request, role_id):
+    """
+    Superuser only. Edits an existing role.
+    """
+    role = get_object_or_404(Role, id=role_id)
+    
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        description = request.POST.get("description", "").strip()
+        is_active = request.POST.get("is_active", None) == "on"
+        
+        if not name:
+            messages.error(request, "Role name is required.")
+            return redirect('authentication:roles')
+        
+        if Role.objects.exclude(id=role_id).filter(name__iexact=name).exists():
+            messages.error(request, f"Role '{name}' already exists.")
+            return redirect('authentication:roles')
+        
+        role.name = name
+        role.description = description
+        role.is_active = is_active
+        role.save()
+        
+        messages.success(request, f"Role '{name}' updated successfully.")
+        return redirect('authentication:roles')
+    
+    return redirect('authentication:roles')
+
+
+@admin_only
+@require_POST
+def delete_role_view(request, role_id):
+    """
+    Superuser only. Deletes the specified Role.
+    """
+    role = get_object_or_404(Role, id=role_id)
+    role_name = role.name
+    
+    # Check if role is in use
+    if UserProfile.objects.filter(role=role).exists():
+        messages.error(request, f"Cannot delete role '{role_name}' because it is assigned to users.")
+        return redirect("authentication:roles")
+    
+    role.delete()
+    messages.success(request, f"Role '{role_name}' has been deleted.")
+    return redirect("authentication:roles")
+
+
+@admin_only
+def manage_permissions_view(request, role_id):
+    """
+    Superuser only. Manages permissions for a specific role.
+    """
+    from django.contrib.auth.models import Permission
+    from django.contrib.contenttypes.models import ContentType
+    
+    role = get_object_or_404(Role, id=role_id)
+    
+    if request.method == "POST":
+        # Get selected permissions
+        selected_permissions = request.POST.getlist("permissions")
+        
+        # Clear existing permissions and add new ones
+        role.permissions.clear()
+        if selected_permissions:
+            permissions = Permission.objects.filter(id__in=selected_permissions)
+            role.permissions.add(*permissions)
+        
+        messages.success(request, f"Permissions updated for role '{role.name}'.")
+        return redirect('authentication:roles')
+    
+    # Get all permissions grouped by content type
+    content_types = ContentType.objects.all()
+    permissions_by_type = {}
+    
+    for ct in content_types:
+        permissions = Permission.objects.filter(content_type=ct)
+        if permissions.exists():
+            permissions_by_type[ct] = permissions
+    
+    current_permissions = role.permissions.all()
+    
+    context = {
+        'role': role,
+        'permissions_by_type': permissions_by_type,
+        'current_permissions': current_permissions
+    }
+    
+    return render(request, 'authentication/manage_permissions.html', context)

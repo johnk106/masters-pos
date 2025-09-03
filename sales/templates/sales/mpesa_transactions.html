@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="content">
+    <div class="page-header">
+        <div class="add-item d-flex">
+            <div class="page-title">
+                <h4>M-Pesa Transactions</h4>
+                <h6>Monitor M-Pesa payment transactions</h6>
+            </div>
+        </div>
+    </div>
+
+    <div class="card table-list-card">
+        <div class="card-body">
+            <div class="table-top">
+                <div class="search-set">
+                    <div class="search-path">
+                        <a class="btn btn-filter" id="filter_search">
+                            <img src="{% static 'landing/assets/img/icons/filter.svg' %}" alt="img">
+                            <span><img src="{% static 'landing/assets/img/icons/closes.svg' %}" alt="img"></span>
+                        </a>
+                    </div>
+                    <div class="search-input">
+                        <a href="#" class="btn btn-searchset">
+                            <img src="{% static 'landing/assets/img/icons/search-white.svg' %}" alt="img">
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table datanew">
+                    <thead>
+                        <tr>
+                            <th class="no-sort">
+                                <label class="checkboxs">
+                                    <input type="checkbox" id="select-all">
+                                    <span class="checkmarks"></span>
+                                </label>
+                            </th>
+                            <th>Phone Number</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Order</th>
+                            <th>M-Pesa Receipt</th>
+                            <th>Transaction Date</th>
+                            <th>Created</th>
+                            <th class="no-sort">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in transactions %}
+                        <tr>
+                            <td>
+                                <label class="checkboxs">
+                                    <input type="checkbox">
+                                    <span class="checkmarks"></span>
+                                </label>
+                            </td>
+                            <td>{{ transaction.phone_number }}</td>
+                            <td>KES {{ transaction.amount }}</td>
+                            <td>
+                                {% if transaction.status == 'Successful' %}
+                                    <span class="badge badge-linesuccess">{{ transaction.status }}</span>
+                                {% elif transaction.status == 'Failed' %}
+                                    <span class="badge badge-linedanger">{{ transaction.status }}</span>
+                                {% elif transaction.status == 'Pending' %}
+                                    <span class="badge badge-linewarning">{{ transaction.status }}</span>
+                                {% else %}
+                                    <span class="badge badge-linedark">{{ transaction.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ transaction.order_reference }}</td>
+                            <td>{{ transaction.mpesa_receipt_number }}</td>
+                            <td>{{ transaction.transaction_date }}</td>
+                            <td>{{ transaction.created_at }}</td>
+                            <td class="action-table-data">
+                                <div class="edit-delete-action">
+                                    <a class="me-2 p-2" href="#" data-bs-toggle="modal" data-bs-target="#transaction-details-{{ transaction.id }}">
+                                        <img src="{% static 'landing/assets/img/icons/eye1.svg' %}" alt="img">
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Transaction Details Modals -->
+{% for transaction in transactions %}
+<div class="modal fade" id="transaction-details-{{ transaction.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Transaction Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Checkout Request ID:</strong><br>{{ transaction.checkout_request_id }}</p>
+                        <p><strong>Phone Number:</strong><br>{{ transaction.phone_number }}</p>
+                        <p><strong>Amount:</strong><br>KES {{ transaction.amount }}</p>
+                        <p><strong>Status:</strong><br>{{ transaction.status }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Order Reference:</strong><br>{{ transaction.order_reference }}</p>
+                        <p><strong>M-Pesa Receipt:</strong><br>{{ transaction.mpesa_receipt_number }}</p>
+                        <p><strong>Transaction Date:</strong><br>{{ transaction.transaction_date }}</p>
+                        <p><strong>Created:</strong><br>{{ transaction.created_at }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

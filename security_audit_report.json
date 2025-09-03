@@ -1,0 +1,33 @@
+{
+  "timestamp": "2025-07-18 15:14:34.189497+00:00",
+  "total_views": 94,
+  "protected_views": 77,
+  "unprotected_views": 4,
+  "protection_rate": 81.91489361702128,
+  "unprotected_view_details": [
+    {
+      "name": "faqs",
+      "module": "content.views",
+      "file_path": "./content/views.py",
+      "decorators": []
+    },
+    {
+      "name": "homepage",
+      "module": "landing.views",
+      "file_path": "./landing/views.py",
+      "decorators": []
+    },
+    {
+      "name": "login_view",
+      "module": "authentication.views",
+      "file_path": "./authentication/views.py",
+      "decorators": []
+    },
+    {
+      "name": "logout_view",
+      "module": "authentication.views",
+      "file_path": "./authentication/views.py",
+      "decorators": []
+    }
+  ]
+}

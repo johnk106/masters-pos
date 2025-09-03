@@ -1,0 +1,111 @@
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import ExpenseCategory,Expense
+from finance.services.expense_service import ExpenseCategoryManager,ExpenseManager
+from .utils import *
+from django.core.paginator import Paginator
+from authentication.decorators import manager_or_above
+@manager_or_above
+
+
+
+# Create your views here.
+def expenses(request):
+    # Base queryset
+    qs = Expense.objects.select_related('category', 'created_by').order_by('-date_created')
+    categories = ExpenseCategory.objects.all()
+
+    # Search filter (optional)
+    search = request.GET.get('q', '').strip()
+    if search:
+        qs = qs.filter(name__icontains=search)
+
+  
+
+    # Handle exports
+    exp_type = request.GET.get('export')
+    if exp_type == 'excel':
+        return export_expenses_excel(qs)
+    if exp_type == 'pdf':
+        return export_expenses_pdf(qs)
+
+    # Paginate
+    paginator = Paginator(qs, 25)
+    page_obj  = paginator.get_page(request.GET.get('page', 1))
+
+    return render(request, 'finance/expenses.html', {
+        'expenses':         page_obj,
+        'categories':       categories,
+        'search':           search,
+        'export_excel_url': f'?export=excel&search={search}',
+        'export_pdf_url':   f'?export=pdf&search={search}',
+    })
+@manager_or_above
+
+
+
+def expense_create(request):
+  
+    if request.method == 'POST':
+        return ExpenseManager.create_expense(request)
+
+    categories = ExpenseCategory.objects.filter(status=True).order_by('name')
+    return render(request, 'finance/expense_form.html', {
+        'action': 'create',
+        'categories': categories
+    })
+@manager_or_above
+
+
+def expense_edit(request, expense_id):
+  
+    expense = get_object_or_404(Expense, id=expense_id)
+    if request.method == 'POST':
+        return ExpenseManager.edit_expense(request, expense_id)
+
+    categories = ExpenseCategory.objects.filter(status=True).order_by('name')
+    return render(request, 'finance/expense_form.html', {
+        'action': 'edit',
+        'expense': expense,
+        'categories': categories
+    })
+@manager_or_above
+
+
+def expense_delete(request, expense_id):
+    
+    expense = get_object_or_404(Expense, id=expense_id)
+
+    if request.method == 'POST':
+        return ExpenseManager.delete_expense(request, expense_id)
+
+    return render(request, 'finance/expense_confirm_delete.html', {
+        'expense': expense
+    })
+@manager_or_above
+
+
+def expense_categories(request):
+    categories = ExpenseCategory.objects.order_by('name')
+    return render(request,'finance/expense-categories.html',{
+         'categories':categories
+    })
+@manager_or_above
+
+def expense_category_create(request):
+    
+    if request.method == 'POST':
+        return ExpenseCategoryManager.create_expense_category(request)
+@manager_or_above
+
+    
+def expense_category_edit(request, category_id):
+    category = get_object_or_404(ExpenseCategory, id=category_id)
+
+    if request.method == 'POST':
+        return ExpenseCategoryManager.edit_expense_category(request, category_id)
+@manager_or_above
+
+  
+def expense_category_delete(request, category_id):
+    if request.method == 'POST':
+        return ExpenseCategoryManager.delete_expense_category(request, category_id)

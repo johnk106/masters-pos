@@ -1,0 +1,374 @@
+from django.shortcuts import render
+from .models import *
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import F,Prefetch
+from .services.category_service import *
+from .services.product_service import ProductManager
+from .utils import *
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.text import slugify
+from django.views.decorators.http import require_http_methods
+import json
+
+
+PAGE_SIZE = 20
+# Create your views here.
+def product_list(request):
+    # 1) grab search/export params
+    search = request.GET.get('search', '').strip()
+    export = request.GET.get('export', '').lower()
+
+    # 2) filter—but do NOT paginate yet
+    #    low_stock=False so we get *all* products
+    qs = get_products_queryset(search=search, low_stock=False)
+
+    # 3) if export requested, short-circuit to download
+    if export == 'excel':
+        return export_to_excel(qs)
+    elif export == 'pdf':
+        return export_to_pdf(qs)
+
+    # 4) no export: paginate & render
+    paginator = Paginator(qs.order_by('name'), 20)
+    page_number = request.GET.get('page', 1)
+    try:
+        page_obj = paginator.page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+
+    return render(request, 'inventory/product-list.html', {
+        'page_obj': page_obj,
+        'search': search,  # so your template can re-populate the search box
+        'export_excel_url': f"?export=excel&search={search}",
+        'export_pdf_url':   f"?export=pdf&search={search}",
+    })
+
+def create_product(request):
+    if request.method == 'POST':
+        return ProductManager.create_product(request)
+    
+    return render(request,'inventory/create-product.html',{
+           'categories':Category.objects.all(),
+        'subcategories':SubCategory.objects.all(),
+        'units':Unit.objects.all()
+    })
+
+@require_http_methods(["POST"])
+def ajax_create_category(request):
+    """AJAX endpoint for creating a new category"""
+    try:
+        data = json.loads(request.body)
+        name = data.get('name', '').strip()
+        
+        if not name:
+            return JsonResponse({'success': False, 'error': 'Category name is required'})
+        
+        # Check if category already exists
+        if Category.objects.filter(name__iexact=name).exists():
+            return JsonResponse({'success': False, 'error': 'Category already exists'})
+        
+        # Create new category
+        category = Category.objects.create(
+            name=name,
+            slug=slugify(name),
+            status=True
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'category': {
+                'id': category.id,
+                'name': category.name
+            }
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@require_http_methods(["POST"])
+def ajax_create_subcategory(request):
+    """AJAX endpoint for creating a new subcategory"""
+    try:
+        data = json.loads(request.body)
+        name = data.get('name', '').strip()
+        category_id = data.get('category_id')
+        
+        if not name:
+            return JsonResponse({'success': False, 'error': 'Subcategory name is required'})
+        
+        if not category_id:
+            return JsonResponse({'success': False, 'error': 'Category is required'})
+        
+        # Check if category exists
+        try:
+            category = Category.objects.get(id=category_id)
+        except Category.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Category not found'})
+        
+        # Check if subcategory already exists for this category
+        if SubCategory.objects.filter(name__iexact=name, category=category).exists():
+            return JsonResponse({'success': False, 'error': 'Subcategory already exists in this category'})
+        
+        # Create new subcategory
+        subcategory = SubCategory.objects.create(
+            name=name,
+            slug=slugify(name),
+            category=category,
+            status=True
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'subcategory': {
+                'id': subcategory.id,
+                'name': subcategory.name,
+                'category_id': category.id
+            }
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@require_http_methods(["GET"])
+def ajax_get_subcategories(request):
+    """AJAX endpoint for getting subcategories by category"""
+    category_id = request.GET.get('category_id')
+    if category_id:
+        subcategories = SubCategory.objects.filter(category_id=category_id).values('id', 'name')
+        return JsonResponse({'subcategories': list(subcategories)})
+    
+    return JsonResponse({'subcategories': []})
+
+def product_details(request,product_id):
+
+    product = Product.objects.filter(id=product_id).first()
+    if not product:
+        messages.error(request,'Product with that name could not be found')
+
+        return redirect('inventory:product-list')
+
+    return render(request,'inventory/product-details.html',{
+        'product':product
+    })
+
+
+def edit_product(request, product_id):
+    if request.method == 'POST':
+        return ProductManager.edit_product(request, product_id)
+    product = Product.objects.get(pk=product_id)
+    return render(request,'inventory/edit-product.html',{
+        'product':product,
+         'categories':Category.objects.all(),
+        'subcategories':SubCategory.objects.all(),
+        'units':Unit.objects.all()
+    })
+
+
+def delete_product(request, product_id):
+    if request.method == 'POST':
+        return ProductManager.delete_product(request, product_id)
+    return ProductManager.delete_product(request, product_id)
+
+    
+
+
+def low_stocks(request):
+    # same shape, but always low_stock=True
+    search = request.GET.get('search', '').strip()
+    export = request.GET.get('export', '').lower()
+
+    # get only low-stock items
+    qs = get_products_queryset(search=search, low_stock=True)
+
+    if export == 'excel':
+        return export_to_excel(qs,basename='low_stocks')
+    elif export == 'pdf':
+        return export_to_pdf(qs,basename='low-stocks')
+
+    paginator = Paginator(qs.order_by('name'), 20)
+    page_number = request.GET.get('page', 1)
+    try:
+        page_obj = paginator.page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+
+    return render(request, 'inventory/low-stocks.html', {
+        'page_obj': page_obj,
+        'search': search,
+        'export_excel_url': f"?export=excel&search={search}",
+        'export_pdf_url':   f"?export=pdf&search={search}",
+    })
+
+
+def categories(request):
+    search = request.GET.get('search', '').strip()
+    export = request.GET.get('export', '').lower()
+
+    qs = get_categories_queryset(search=search)
+    if export == 'excel':
+        return export_categories_excel(qs, basename='categories')
+    if export == 'pdf':
+        return export_categories_pdf(qs, basename='categories')
+
+    paginator = Paginator(qs, PAGE_SIZE)
+    page = request.GET.get('page', 1)
+    try:
+        page_obj = paginator.page(page)
+    except (PageNotAnInteger, EmptyPage):
+        page_obj = paginator.page(1)
+
+    return render(request, 'inventory/categories.html', {
+        'categories': page_obj,
+        'search': search,
+        'export_excel_url': f'?export=excel&search={search}',
+        'export_pdf_url':   f'?export=pdf&search={search}',
+    })
+
+def create_category(request):
+    if request.method == 'POST':
+        return CategoryManager.create_category(request)
+    messages.warning(request, "Method not allowed")
+    return redirect('inventory:categories')
+
+
+def edit_category(request, category_id):
+    if request.method == 'POST':
+        return CategoryManager.edit_category(request, category_id)
+    messages.warning(request, "Method not allowed")
+    return redirect('inventory:categories')
+
+
+def delete_category(request, category_id):
+    return CategoryManager.delete_category(request, category_id)
+
+
+def sub_categories(request):
+    search   = request.GET.get('search', '').strip()
+    export   = request.GET.get('export', '').lower()
+
+    qs = get_subcategories_queryset(search=search)
+    if export == 'excel':
+        return export_subcategories_excel(qs, basename='sub-categories')
+    if export == 'pdf':
+        return export_subcategories_pdf(qs, basename='sub-categories')
+
+    paginator = Paginator(qs, PAGE_SIZE)
+    page = request.GET.get('page', 1)
+    try:
+        page_obj = paginator.page(page)
+    except (PageNotAnInteger, EmptyPage):
+        page_obj = paginator.page(1)
+
+    categories = Category.objects.all()
+    return render(request, 'inventory/sub-categories.html', {
+        'page_obj':        page_obj,
+        'categories':      categories,
+        'search':          search,
+        'export_excel_url': f'?export=excel&search={search}',
+        'export_pdf_url':   f'?export=pdf&search={search}',
+    })
+
+def create_subcategory(request):
+    if request.method == 'POST':
+        return SubCategoryManager.create_subcategory(request)
+    messages.warning(request, "Method not allowed")
+    return redirect('inventory:subcategories')
+
+
+def edit_subcategory(request, subcategory_id):
+    if request.method == 'POST':
+        return SubCategoryManager.edit_subcategory(request, subcategory_id)
+    messages.warning(request, "Method not allowed")
+    return redirect('inventory:subcategories')
+
+
+def delete_subcategory(request, subcategory_id):
+    return SubCategoryManager.delete_subcategory(request, subcategory_id)
+
+
+def units(request):
+    search = request.GET.get('search', '').strip()
+    export = request.GET.get('export', '').lower()
+
+    qs = get_units_queryset(search=search)
+    if export == 'excel':
+        return export_units_excel(qs, basename='units')
+    if export == 'pdf':
+        return export_units_pdf(qs, basename='units')
+
+    paginator = Paginator(qs, PAGE_SIZE)
+    page = request.GET.get('page', 1)
+    try:
+        page_obj = paginator.page(page)
+    except (PageNotAnInteger, EmptyPage):
+        page_obj = paginator.page(1)
+
+    return render(request, 'inventory/units.html', {
+        'page_obj':        page_obj,
+        'search':          search,
+        'export_excel_url': f'?export=excel&search={search}',
+        'export_pdf_url':   f'?export=pdf&search={search}',
+    })
+
+
+def create_unit(request):
+    if request.method == 'POST':
+        return UnitManager.create_unit(request)
+    messages.warning(request, "Method not allowed")
+    return redirect('inventory:units')
+
+def edit_unit(request, unit_id):
+    if request.method == 'POST':
+        return UnitManager.edit_unit(request, unit_id)
+    messages.warning(request, "Method not allowed")
+    return redirect('inventory:units')
+
+def delete_unit(request, unit_id):
+    return UnitManager.delete_unit(request, unit_id)
+
+def variants(request):
+    search = request.GET.get('search', '').strip()
+    export = request.GET.get('export', '').lower()
+
+    qs = get_variants_queryset(search=search)
+    if export == 'excel':
+        return export_variants_excel(qs, basename='variants')
+    if export == 'pdf':
+        return export_variants_pdf(qs, basename='variants')
+
+    paginator = Paginator(qs, PAGE_SIZE)
+    page = request.GET.get('page', 1)
+    try:
+        page_obj = paginator.page(page)
+    except (PageNotAnInteger, EmptyPage):
+        page_obj = paginator.page(1)
+
+    return render(request, 'inventory/variants.html', {
+        'page_obj':        page_obj,
+        'search':          search,
+        'export_excel_url': f'?export=excel&search={search}',
+        'export_pdf_url':   f'?export=pdf&search={search}',
+    })
+
+
+def create_variant(request):
+    if request.method == 'POST':
+        return VariantManager.create_variant(request)
+    messages.warning(request, "Method not allowed")
+    return redirect('inventory:variants')
+
+
+def edit_variant(request, variant_id):
+    if request.method == 'POST':
+        return VariantManager.edit_variant(request, variant_id)
+    messages.warning(request, "Method not allowed")
+    return redirect('inventory:variants')
+
+
+def delete_variant(request, variant_id):
+    return VariantManager.delete_variant(request, variant_id)

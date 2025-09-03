@@ -1,0 +1,478 @@
+{% extends 'landing/base.html' %}
+{% load static %}
+{%load humanize%}
+
+{% block head %}
+  <title>Profit &amp; Loss Report</title>
+{% endblock %}
+
+{% block body %}
+<div class="page-wrapper">
+  <div class="content">
+    <div class="page-header d-flex justify-content-between align-items-center">
+      <div>
+        <h4>Profit / Loss Report</h4>
+        <h6>View Profit &amp; Loss by Month</h6>
+      </div>
+      <div class="d-flex align-items-center">
+        <form method="GET" class="d-flex align-items-center flex-wrap" id="date-range-form">
+          <div class="d-flex align-items-center me-3">
+            <label class="form-label me-2 mb-0 text-nowrap">From:</label>
+            <div class="input-groupicon calender-input me-2">
+              <i data-feather="calendar" class="info-img"></i>
+              <input type="text" id="start-date" class="datetimepicker form-control" 
+                     placeholder="dd/mm/yyyy" style="min-width: 130px;">
+            </div>
+            <label class="form-label me-2 mb-0 text-nowrap">To:</label>
+            <div class="input-groupicon calender-input me-3">
+              <i data-feather="calendar" class="info-img"></i>
+              <input type="text" id="end-date" class="datetimepicker form-control" 
+                     placeholder="dd/mm/yyyy" style="min-width: 130px;">
+            </div>
+          </div>
+          <input type="hidden" name="date_range" id="date-range-hidden" value="{{ date_range }}">
+          <button type="submit" class="btn btn-primary" id="generate-report">Generate Report</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Error message display -->
+    {% if error_message %}
+      <div class="alert alert-danger" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        {{ error_message }}
+      </div>
+    {% endif %}
+
+    <!-- No data message for custom range -->
+    {% if custom_date_range and not has_data_in_range %}
+      <div class="alert alert-info" role="alert">
+        <i class="fas fa-info-circle me-2"></i>
+        No data available for the selected date range.
+      </div>
+    {% endif %}
+
+    <!-- Export Buttons -->
+    <div class="card mb-4">
+      <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
+        <div>
+          <h4>Profit & Loss Report</h4>
+        </div>
+        <ul class="table-top-head">
+          <li>
+            <a data-bs-toggle="tooltip" data-bs-placement="top" title="Pdf" href="{{ export_pdf_url }}">
+              <img src="{% static 'landing/assets/img/icons/pdf.svg' %}" alt="PDF">
+            </a>
+          </li>
+          <li>
+            <a data-bs-toggle="tooltip" data-bs-placement="top" title="Excel" href="{{ export_excel_url }}">
+              <img src="{% static 'landing/assets/img/icons/excel.svg' %}" alt="Excel">
+            </a>
+          </li>
+          <li>
+            <a data-bs-toggle="tooltip" data-bs-placement="top" title="Print" onclick="window.print()">
+              <i class="ti ti-printer"></i>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="table-responsive-scroll mb-4">
+      <table class="table profit-loss-table">
+        <thead class="thead-light">
+          <tr>
+            <th class="row-label-col"></th>
+            {% for label in month_labels %}
+              <th class="month-col">{{ label }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% if custom_date_range and not has_data_in_range %}
+            <!-- No data message for custom range -->
+            <tr>
+              <td class="border-end row-label-cell text-center" colspan="{{ month_labels|length|add:1 }}">
+                <div class="py-4 text-muted">
+                  <i class="fas fa-chart-line fa-2x mb-3"></i>
+                  <h5>No data for selected range</h5>
+                  <p class="mb-0">Please select a different date range or check if data exists for this period.</p>
+                </div>
+              </td>
+            </tr>
+          {% else %}
+          <!-- Income Section -->
+          <tr>
+            <td class="fw-bold border-end row-label-cell">Income</td>
+            <td class="month-cell" colspan="{{ month_labels|length }}"></td>
+          </tr>
+          <tr>
+            <td class="border-end row-label-cell">Sales</td>
+            {% for v in sales %}
+              <td class="month-cell">ksh {{ v | intcomma }}</td>
+            {% endfor %}
+          </tr>
+          <tr>
+            <td class="border-end row-label-cell">Service</td>
+            {% for v in services %}
+              <td class="month-cell">ksh {{ v | intcomma}}</td>
+            {% endfor %}
+          </tr>
+          <tr>
+            <td class="border-end row-label-cell">Purchase Return</td>
+            {% for v in purchase_returns %}
+              <td class="month-cell">ksh {{ v | intcomma}}</td>
+            {% endfor %}
+          </tr>
+          <tr>
+            <td class="fw-bold border-end row-label-cell">Gross Profit</td>
+            {% for v in gross_profit %}
+              <td class="fw-bold month-cell">ksh {{ v | intcomma}}</td>
+            {% endfor %}
+          </tr>
+
+          <!-- Expenses Section -->
+          <tr>
+            <td class="fw-bold border-end row-label-cell">Expenses</td>
+            <td class="month-cell" colspan="{{ month_labels|length }}"></td>
+          </tr>
+          <tr>
+            <td class="border-end row-label-cell">Purchase</td>
+            {% for v in purchases %}
+              <td class="month-cell">ksh {{ v | intcomma }}</td>
+            {% endfor %}
+          </tr>
+          <tr>
+            <td class="border-end row-label-cell">Operating Expenses</td>
+            {% for v in expenses %}
+              <td class="month-cell">ksh {{ v | intcomma}}</td>
+            {% endfor %}
+          </tr>
+          <tr>
+            <td class="fw-bold border-end row-label-cell">Sales Return</td>
+            {% for v in sales_returns %}
+              <td class="month-cell">ksh {{ v | intcomma}}</td>
+            {% endfor %}
+          </tr>
+          <tr>
+            <td class="fw-bold border-end row-label-cell">Total Expense</td>
+            {% for v in total_expense %}
+              <td class="month-cell">ksh {{ v | intcomma}}</td>
+            {% endfor %}
+          </tr>
+          <tr>
+            <td class="fw-bold border-end row-label-cell">Net Profit</td>
+            {% for v in net_profit %}
+              <td class="month-cell">ksh {{ v | intcomma}}</td>
+            {% endfor %}
+          </tr>
+          {% endif %}
+
+        </tbody>
+      </table>
+    </div>
+
+    <div class="footer d-flex justify-content-between border-top p-3 bg-white">
+      <p class="mb-0">{{ now|date:"Y" }} &copy; TwovenPOS. All Rights Reserved</p>
+      <p>Designed &amp; Developed by <a href="#" class="text-primary">Twoven</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- Profit/Loss Report Horizontal Scroll Styles -->
+<style>
+/* Date picker specific styles */
+.calender-input {
+  position: relative;
+  display: inline-block;
+}
+
+.calender-input .info-img {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
+  z-index: 3;
+  pointer-events: none;
+  width: 16px;
+  height: 16px;
+}
+
+.calender-input .form-control {
+  padding-right: 35px;
+}
+
+/* Date range form responsive layout */
+@media (max-width: 768px) {
+  .d-flex.flex-wrap > .d-flex {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 10px;
+  }
+  
+  .d-flex.flex-wrap > .d-flex > .d-flex {
+    flex-direction: row;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .calender-input {
+    min-width: 140px;
+  }
+}
+
+@media (max-width: 576px) {
+  .d-flex.flex-wrap {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+  
+  .d-flex.flex-wrap > .d-flex {
+    margin-bottom: 15px;
+  }
+  
+  .btn {
+    width: 100%;
+  }
+}</style>
+
+<style>
+/* Responsive scroll wrapper for profit/loss table */
+.table-responsive-scroll {
+  overflow-x: auto;
+  overflow-y: visible;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+/* Ensure table maintains its styling while being scrollable */
+.profit-loss-table {
+  min-width: 100%;
+  width: auto;
+  table-layout: auto;
+}
+
+/* Row label column - fixed width to maintain alignment */
+.row-label-col,
+.row-label-cell {
+  min-width: 180px;
+  width: 180px;
+  white-space: normal;
+  position: sticky;
+  left: 0;
+  background-color: white;
+  z-index: 10;
+}
+
+/* Month columns - consistent minimum width */
+.month-col,
+.month-cell {
+  min-width: 120px;
+  text-align: right;
+  white-space: nowrap;
+  padding: 0.75rem;
+}
+
+/* Maintain existing border styling for sticky column */
+.row-label-cell.border-end {
+  border-right: 1px solid #dee2e6 !important;
+}
+
+/* Subtle scroll indicator shadows */
+.table-responsive-scroll::before,
+.table-responsive-scroll::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  pointer-events: none;
+  z-index: 5;
+  transition: opacity 0.3s ease;
+}
+
+.table-responsive-scroll::before {
+  left: 180px; /* Position after sticky column */
+  background: linear-gradient(to right, rgba(0,0,0,0.1), transparent);
+  opacity: 0;
+}
+
+.table-responsive-scroll::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(0,0,0,0.1), transparent);
+  opacity: 0;
+}
+
+/* Show scroll indicators when content is scrollable */
+.table-responsive-scroll.has-scroll::before,
+.table-responsive-scroll.has-scroll::after {
+  opacity: 1;
+}
+
+/* Ensure proper spacing is maintained */
+.profit-loss-table th,
+.profit-loss-table td {
+  border-color: #dee2e6;
+  vertical-align: middle;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .row-label-col,
+  .row-label-cell {
+    min-width: 140px;
+    width: 140px;
+  }
+  
+  .month-col,
+  .month-cell {
+    min-width: 100px;
+    font-size: 0.875rem;
+  }
+}
+</style>
+
+<script>
+// Add scroll indicators when content overflows
+document.addEventListener('DOMContentLoaded', function() {
+  const scrollContainer = document.querySelector('.table-responsive-scroll');
+  if (scrollContainer) {
+    function checkScroll() {
+      const hasHorizontalScroll = scrollContainer.scrollWidth > scrollContainer.clientWidth;
+      scrollContainer.classList.toggle('has-scroll', hasHorizontalScroll);
+    }
+    
+    // Check on load and resize
+    checkScroll();
+    window.addEventListener('resize', checkScroll);
+    
+    // Optional: Add smooth scroll behavior for better UX
+    scrollContainer.style.scrollBehavior = 'smooth';
+  }
+
+  // Date range form handling
+  const dateRangeForm = document.getElementById('date-range-form');
+  const startDateInput = document.getElementById('start-date');
+  const endDateInput = document.getElementById('end-date');
+  const hiddenDateRange = document.getElementById('date-range-hidden');
+  
+  if (dateRangeForm && startDateInput && endDateInput && hiddenDateRange) {
+    
+    // Parse existing date range value and populate individual fields
+    const existingDateRange = hiddenDateRange.value.trim();
+    if (existingDateRange) {
+      try {
+        const parts = existingDateRange.split(' - ');
+        if (parts.length === 2) {
+          startDateInput.value = parts[0].trim();
+          endDateInput.value = parts[1].trim();
+        }
+      } catch (error) {
+        console.log('Error parsing existing date range:', error);
+      }
+    }
+    
+    // Function to combine dates into range format
+    function updateDateRange() {
+      const startDate = startDateInput.value.trim();
+      const endDate = endDateInput.value.trim();
+      
+      if (startDate && endDate) {
+        hiddenDateRange.value = startDate + ' - ' + endDate;
+      } else {
+        hiddenDateRange.value = '';
+      }
+    }
+    
+    // Update hidden field when either date changes
+    startDateInput.addEventListener('dp.change', updateDateRange);
+    endDateInput.addEventListener('dp.change', updateDateRange);
+    startDateInput.addEventListener('change', updateDateRange);
+    endDateInput.addEventListener('change', updateDateRange);
+    
+    // Form validation on submit
+    dateRangeForm.addEventListener('submit', function(e) {
+      const startDate = startDateInput.value.trim();
+      const endDate = endDateInput.value.trim();
+      
+      // Allow submission with no dates (will show full range)
+      if (!startDate && !endDate) {
+        hiddenDateRange.value = '';
+        return true;
+      }
+      
+      // If one date is provided, both must be provided
+      if ((startDate && !endDate) || (!startDate && endDate)) {
+        e.preventDefault();
+        alert('Please select both start and end dates, or leave both empty for full range.');
+        return false;
+      }
+      
+      // Validate date format (dd/mm/yyyy or dd-mm-yyyy)
+      const datePattern = /^\d{2}[\/\-]\d{2}[\/\-]\d{4}$/;
+      if (!datePattern.test(startDate) || !datePattern.test(endDate)) {
+        e.preventDefault();
+        alert('Please select valid dates using the date picker.');
+        return false;
+      }
+      
+      // Validate start date is before or equal to end date
+      try {
+        const startParts = startDate.replace('-', '/').split('/');
+        const endParts = endDate.replace('-', '/').split('/');
+        
+        const startDateObj = new Date(startParts[2], startParts[1] - 1, startParts[0]);
+        const endDateObj = new Date(endParts[2], endParts[1] - 1, endParts[0]);
+        
+        if (startDateObj > endDateObj) {
+          e.preventDefault();
+          alert('Start date must be before or equal to end date.');
+          return false;
+        }
+      } catch (error) {
+        e.preventDefault();
+        alert('Please select valid dates.');
+        return false;
+      }
+      
+      // Update the hidden field before submission
+      updateDateRange();
+    });
+    
+    // Initialize date pickers with proper format
+    setTimeout(function() {
+      if (typeof $.fn.datetimepicker !== 'undefined') {
+        $('#start-date, #end-date').datetimepicker({
+          format: 'DD/MM/YYYY',
+          useCurrent: false,
+          showTodayButton: true,
+          showClear: true,
+          icons: {
+            up: "fas fa-angle-up",
+            down: "fas fa-angle-down",
+            next: 'fas fa-angle-right',
+            previous: 'fas fa-angle-left',
+            today: 'fas fa-calendar-check',
+            clear: 'fas fa-trash'
+          }
+        });
+        
+        // Set max date for start date picker based on end date
+        $('#start-date').on('dp.change', function(e) {
+          $('#end-date').data('DateTimePicker').minDate(e.date);
+          updateDateRange();
+        });
+        
+        // Set min date for end date picker based on start date
+        $('#end-date').on('dp.change', function(e) {
+          $('#start-date').data('DateTimePicker').maxDate(e.date);
+          updateDateRange();
+        });
+      }
+    }, 100);
+  }
+});
+</script>
+
+{% endblock %}

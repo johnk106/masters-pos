@@ -1,0 +1,426 @@
+{
+  "timestamp": "Fri Jul 18 03:14:28 PM UTC 2025",
+  "fixes_applied": 68,
+  "backup_files": [
+    "./content/views.py.security_backup",
+    "./landing/views.py.security_backup",
+    "./reports/views.py.security_backup",
+    "./sales/views.py.security_backup",
+    "./authentication/views.py.security_backup",
+    "./purchases/views.py.security_backup",
+    "./settings/views.py.security_backup",
+    "./people/views.py.security_backup",
+    "./finance/views.py.security_backup",
+    "./inventory/views.py.security_backup"
+  ],
+  "details": [
+    {
+      "file": "./landing/views.py",
+      "view": "sales_dashboard",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./reports/views.py",
+      "view": "best_sellers",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./reports/views.py",
+      "view": "expense_report",
+      "decorator": "@manager_or_above",
+      "security_level": "manager_or_above"
+    },
+    {
+      "file": "./reports/views.py",
+      "view": "inventory_report",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./reports/views.py",
+      "view": "opening_inventory_report",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./reports/views.py",
+      "view": "profit_loss_report",
+      "decorator": "@manager_or_above",
+      "security_level": "manager_or_above"
+    },
+    {
+      "file": "./reports/views.py",
+      "view": "purchase_report",
+      "decorator": "@manager_or_above",
+      "security_level": "manager_or_above"
+    },
+    {
+      "file": "./reports/views.py",
+      "view": "sales_report",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./reports/views.py",
+      "view": "sold_stock",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./reports/views.py",
+      "view": "stock_history",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./sales/views.py",
+      "view": "cash_register_data",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./sales/views.py",
+      "view": "create_order",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./sales/views.py",
+      "view": "get_customers_ajax",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./sales/views.py",
+      "view": "online_orders",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./sales/views.py",
+      "view": "order_detail_json",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./sales/views.py",
+      "view": "pos",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./sales/views.py",
+      "view": "pos_orders",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./sales/views.py",
+      "view": "sales_return",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./sales/views.py",
+      "view": "today_profit_data",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./sales/views.py",
+      "view": "update_payment",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./authentication/views.py",
+      "view": "profile",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./purchases/views.py",
+      "view": "edit_purchase",
+      "decorator": "@manager_or_above",
+      "security_level": "manager_or_above"
+    },
+    {
+      "file": "./purchases/views.py",
+      "view": "get_products_ajax",
+      "decorator": "@manager_or_above",
+      "security_level": "manager_or_above"
+    },
+    {
+      "file": "./purchases/views.py",
+      "view": "get_purchase_details_ajax",
+      "decorator": "@manager_or_above",
+      "security_level": "manager_or_above"
+    },
+    {
+      "file": "./purchases/views.py",
+      "view": "purchases",
+      "decorator": "@manager_or_above",
+      "security_level": "manager_or_above"
+    },
+    {
+      "file": "./settings/views.py",
+      "view": "profile_settings",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./settings/views.py",
+      "view": "security_settings",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./people/views.py",
+      "view": "create_customer",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./people/views.py",
+      "view": "create_supplier",
+      "decorator": "@manager_or_above",
+      "security_level": "manager_or_above"
+    },
+    {
+      "file": "./people/views.py",
+      "view": "customers",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./people/views.py",
+      "view": "delete_customer",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./people/views.py",
+      "view": "delete_supplier",
+      "decorator": "@manager_or_above",
+      "security_level": "manager_or_above"
+    },
+    {
+      "file": "./people/views.py",
+      "view": "edit_customer",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./people/views.py",
+      "view": "edit_supplier",
+      "decorator": "@manager_or_above",
+      "security_level": "manager_or_above"
+    },
+    {
+      "file": "./people/views.py",
+      "view": "suppliers_list",
+      "decorator": "@manager_or_above",
+      "security_level": "manager_or_above"
+    },
+    {
+      "file": "./finance/views.py",
+      "view": "expense_categories",
+      "decorator": "@manager_or_above",
+      "security_level": "manager_or_above"
+    },
+    {
+      "file": "./finance/views.py",
+      "view": "expense_category_create",
+      "decorator": "@manager_or_above",
+      "security_level": "manager_or_above"
+    },
+    {
+      "file": "./finance/views.py",
+      "view": "expense_category_delete",
+      "decorator": "@manager_or_above",
+      "security_level": "manager_or_above"
+    },
+    {
+      "file": "./finance/views.py",
+      "view": "expense_category_edit",
+      "decorator": "@manager_or_above",
+      "security_level": "manager_or_above"
+    },
+    {
+      "file": "./finance/views.py",
+      "view": "expense_create",
+      "decorator": "@manager_or_above",
+      "security_level": "manager_or_above"
+    },
+    {
+      "file": "./finance/views.py",
+      "view": "expense_delete",
+      "decorator": "@manager_or_above",
+      "security_level": "manager_or_above"
+    },
+    {
+      "file": "./finance/views.py",
+      "view": "expense_edit",
+      "decorator": "@manager_or_above",
+      "security_level": "manager_or_above"
+    },
+    {
+      "file": "./finance/views.py",
+      "view": "expenses",
+      "decorator": "@manager_or_above",
+      "security_level": "manager_or_above"
+    },
+    {
+      "file": "./inventory/views.py",
+      "view": "ajax_create_category",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./inventory/views.py",
+      "view": "ajax_create_subcategory",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./inventory/views.py",
+      "view": "ajax_get_subcategories",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./inventory/views.py",
+      "view": "categories",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./inventory/views.py",
+      "view": "create_category",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./inventory/views.py",
+      "view": "create_product",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./inventory/views.py",
+      "view": "create_subcategory",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./inventory/views.py",
+      "view": "create_unit",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./inventory/views.py",
+      "view": "create_variant",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./inventory/views.py",
+      "view": "delete_category",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./inventory/views.py",
+      "view": "delete_product",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./inventory/views.py",
+      "view": "delete_subcategory",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./inventory/views.py",
+      "view": "delete_unit",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./inventory/views.py",
+      "view": "delete_variant",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./inventory/views.py",
+      "view": "edit_category",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./inventory/views.py",
+      "view": "edit_product",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./inventory/views.py",
+      "view": "edit_subcategory",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./inventory/views.py",
+      "view": "edit_unit",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./inventory/views.py",
+      "view": "edit_variant",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./inventory/views.py",
+      "view": "low_stocks",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./inventory/views.py",
+      "view": "product_details",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./inventory/views.py",
+      "view": "product_list",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./inventory/views.py",
+      "view": "sub_categories",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./inventory/views.py",
+      "view": "units",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    },
+    {
+      "file": "./inventory/views.py",
+      "view": "variants",
+      "decorator": "@login_required",
+      "security_level": "login_required"
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{% extends 'landing/base.html' %}
+{% load static %}
+
+{% block head %}
+    <meta name="description" content="Bad Request - Page Not Found">
+    <meta name="robots" content="noindex, nofollow">
+    <title>400 - Bad Request | Twoven Ecommerce</title>
+{% endblock %}
+
+{% block body %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="error-page">
+            <div class="row justify-content-center">
+                <div class="col-lg-6 col-md-8">
+                    <div class="error-wrap text-center">
+                        <div class="error-img mb-4">
+                            <img src="{% static 'landing/assets/img/authentication/error-404.png' %}" alt="400 Error" class="img-fluid" style="max-width: 300px;">
+                        </div>
+                        <div class="error-content">
+                            <h1 class="error-code mb-3">400</h1>
+                            <h2 class="error-title mb-3">Bad Request</h2>
+                            <p class="error-description mb-4">
+                                Sorry, we couldn't process your request. The request you made contains invalid syntax or cannot be fulfilled.
+                            </p>
+                            <div class="error-actions">
+                                <a href="{% url 'landing:homepage' %}" class="btn btn-primary me-3">
+                                    <i class="ti ti-home me-2"></i>Go to Dashboard
+                                </a>
+                                <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                                    <i class="ti ti-arrow-left me-2"></i>Go Back
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-page {
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 0;
+}
+
+.error-code {
+    font-size: 4rem;
+    font-weight: 700;
+    color: #dc3545;
+    margin: 0;
+}
+
+.error-title {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #495057;
+    margin: 0;
+}
+
+.error-description {
+    font-size: 1.1rem;
+    color: #6c757d;
+    line-height: 1.6;
+}
+
+.error-actions .btn {
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .error-code {
+        font-size: 3rem;
+    }
+    
+    .error-title {
+        font-size: 1.5rem;
+    }
+    
+    .error-actions .btn {
+        display: block;
+        width: 100%;
+        margin: 0.5rem 0;
+    }
+}
+</style>
+{% endblock %}

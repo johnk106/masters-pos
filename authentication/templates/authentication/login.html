@@ -1,0 +1,163 @@
+{%load static%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta Tags -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="keywords" content="inventory management, admin dashboard, bootstrap template, invoicing, POS system">
+    <meta name="author" content="Dreams Technologies">
+    <meta name="robots" content="index, follow">
+    <title>POS Login</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="{% static 'landing/assets/img/favicon.png' %}" type="image/x-icon">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'landing/assets/css/bootstrap.min.css' %}">
+
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{% static 'landing/assets/plugins/fontawesome/css/fontawesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'landing/assets/plugins/fontawesome/css/all.min.css' %}">
+
+    <!-- Tabler Icon CSS -->
+    <link rel="stylesheet" href="{% static 'landing/assets/plugins/tabler-icons/tabler-icons.css' %}">
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'landing/assets/css/style.css' %}">
+</head>
+<body class="account-page bg-white">
+
+    <div id="global-loader">
+        <div class="whirly-loader"></div>
+    </div>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+        <div class="account-content">
+            <div class="login-wrapper login-new">
+                <div class="row w-100">
+                    <div class="col-lg-5 mx-auto">
+                        <div class="login-content user-login">
+                            
+
+                            <!-- LOGIN FORM -->
+                            <form action="{% url 'authentication:login' %}" method="post">
+                                {% csrf_token %}
+                                <div class="card">
+                                    <div class="card-body p-5">
+                                        <div class="login-userheading">
+                                            <h3>Sign In</h3>
+                                            <h4>Access the Dreamspos panel using your email or username and passcode.</h4>
+                                            <br>
+                                            {% if messages %}
+                                                {% for message in messages %}
+                                                    {% if message.tags == 'error' %}
+                                                        <div class="alert alert-solid-danger alert-dismissible fade show">
+                                                            {{ message }}
+                                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+                                                                <i class="fas fa-xmark"></i>
+                                                            </button>
+                                                        </div>
+                                                    {% elif message.tags == 'success' %}
+                                                        <div class="alert alert-solid-success alert-dismissible fade show">
+                                                            {{ message }}
+                                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+                                                                <i class="fas fa-xmark"></i>
+                                                            </button>
+                                                        </div>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% endif %}
+                                        </div>
+
+                                        <!-- IDENTIFIER FIELD (username OR email) -->
+                                        <div class="mb-3">
+                                            <label class="form-label">Email or Username <span class="text-danger">*</span></label>
+                                            <div class="input-group">
+                                                <input
+                                                    type="text"
+                                                    name="identifier"
+                                                    class="form-control border-end-0"
+                                                    placeholder="Enter email or username"
+                                                    required
+                                                >
+                                                <span class="input-group-text border-start-0">
+                                                    <i class="ti ti-mail"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <!-- PASSWORD FIELD -->
+                                        <div class="mb-3">
+                                            <label class="form-label">Password <span class="text-danger">*</span></label>
+                                            <div class="pass-group">
+                                                <input
+                                                    type="password"
+                                                    name="password"
+                                                    class="pass-input form-control"
+                                                    placeholder="Enter password"
+                                                    required
+                                                >
+                                                <span class="ti toggle-password ti-eye-off text-gray-9"></span>
+                                            </div>
+                                        </div>
+
+                                        <!-- REMEMBER & FORGOT -->
+                                        <div class="form-login authentication-check">
+                                            <div class="row">
+                                                <div class="col-12 d-flex align-items-center justify-content-between">
+                                                    <div class="custom-control custom-checkbox">
+                                                        <label class="checkboxs ps-4 mb-0 pb-0 line-height-1 fs-16 text-gray-6">
+                                                            <input type="checkbox" class="form-control">
+                                                            <span class="checkmarks"></span>Remember me
+                                                        </label>
+                                                    </div>
+                                                    <div class="text-end">
+                                                        <a class="text-orange fs-16 fw-medium" href="forgot-password.html">Forgot Password?</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- SUBMIT BUTTON -->
+                                        <div class="form-login">
+                                            <button type="submit" class="btn btn-primary w-100">Sign In</button>
+                                        </div>
+
+                                        <div class="signinform">
+                                            <h4>New on our platform? <a href="#" class="hover-a">Ask admin to create an account</a></h4>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </form>
+                            <!-- /LOGIN FORM -->
+
+                        </div>
+                        <div class="my-4 d-flex justify-content-center align-items-center copyright-text">
+                            <p>Copyright &copy; 2025 TwovenPOS</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- /Main Wrapper -->
+
+    <!-- jQuery -->
+    <script src="{% static 'landing/assets/js/jquery-3.7.1.min.js' %}"></script>
+
+    <!-- Feather Icon JS -->
+    <script src="{% static 'landing/assets/js/feather.min.js' %}"></script>
+
+    <!-- Bootstrap Core JS -->
+    <script src="{% static 'landing/assets/js/bootstrap.bundle.min.js' %}"></script>
+
+    <!-- Custom JS -->
+    <script src="{% static 'landing/assets/js/script.js' %}"></script>
+
+</body>
+</html>
