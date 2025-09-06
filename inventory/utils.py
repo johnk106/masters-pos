@@ -2,8 +2,9 @@
 import io
 from django.http import FileResponse
 from openpyxl import Workbook
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
+# Temporarily disabled due to PIL issues
+# from reportlab.lib.pagesizes import A4
+# from reportlab.pdfgen import canvas
 from django.db.models import Q, F
 
 from .models import *
@@ -43,47 +44,53 @@ def export_to_excel(qs, basename='products'):
     filename = f"{basename}.xlsx"
     return FileResponse(buffer, as_attachment=True, filename=filename)
 
+# Temporarily disabled due to PIL issues
+# def export_to_pdf(qs, basename='products'):
+#     """
+#     Given a product queryset and a basename, returns a FileResponse
+#     for an in-memory PDF named e.g. 'products.pdf' or 'low-stocks.pdf'
+#     """
+#     buffer = io.BytesIO()
+##     p = canvas.Canvas(buffer, pagesize=A4)
+#     width, height = A4
+#     y = height - 50
+#
+#     # Header
+#     p.setFont("Helvetica-Bold", 12)
+#     p.drawString(40, y, f"{basename.replace('-', ' ').title()} Report")
+#     p.setFont("Helvetica", 10)
+#     y -= 30
+#
+#     # Column titles
+#     p.drawString(40, y, "Name")
+#     p.drawString(200, y, "SKU")
+#     p.drawString(300, y, "Qty")
+#     p.drawString(350, y, "Price")
+#     y -= 20
+#
+#     # Rows
+#     for prod in qs:
+#         stock = prod.stock_entries.first()
+#         qty = stock.quantity if stock else 0
+#         price = float(stock.price) if stock else 0
+#         p.drawString(40, y, prod.name[:30])
+#         p.drawString(200, y, prod.sku)
+#         p.drawString(300, y, str(qty))
+#         p.drawString(350, y, f"{price:.2f}")
+#         y -= 20
+#         if y < 50:
+#             p.showPage()
+#             y = height - 50
+#
+#     p.save()
+#     buffer.seek(0)
+#     filename = f"{basename}.pdf"
+#     return FileResponse(buffer, as_attachment=True, filename=filename)
+
 def export_to_pdf(qs, basename='products'):
-    """
-    Given a product queryset and a basename, returns a FileResponse
-    for an in-memory PDF named e.g. 'products.pdf' or 'low-stocks.pdf'
-    """
-    buffer = io.BytesIO()
-    p = canvas.Canvas(buffer, pagesize=A4)
-    width, height = A4
-    y = height - 50
-
-    # Header
-    p.setFont("Helvetica-Bold", 12)
-    p.drawString(40, y, f"{basename.replace('-', ' ').title()} Report")
-    p.setFont("Helvetica", 10)
-    y -= 30
-
-    # Column titles
-    p.drawString(40, y, "Name")
-    p.drawString(200, y, "SKU")
-    p.drawString(300, y, "Qty")
-    p.drawString(350, y, "Price")
-    y -= 20
-
-    # Rows
-    for prod in qs:
-        stock = prod.stock_entries.first()
-        qty = stock.quantity if stock else 0
-        price = float(stock.price) if stock else 0
-        p.drawString(40, y, prod.name[:30])
-        p.drawString(200, y, prod.sku)
-        p.drawString(300, y, str(qty))
-        p.drawString(350, y, f"{price:.2f}")
-        y -= 20
-        if y < 50:
-            p.showPage()
-            y = height - 50
-
-    p.save()
-    buffer.seek(0)
-    filename = f"{basename}.pdf"
-    return FileResponse(buffer, as_attachment=True, filename=filename)
+    """Temporarily disabled - PDF export unavailable"""
+    from django.http import HttpResponse
+    return HttpResponse("PDF export temporarily disabled", status=503)
 
 
 def get_categories_queryset(search: str = None):
@@ -146,17 +153,10 @@ def export_subcategories_excel(qs, basename='sub-categories'):
 # PDF exporters
 # —————————————
 
-def export_categories_pdf(qs, basename='categories'):
-    buf = io.BytesIO()
-    c = canvas.Canvas(buf, pagesize=A4)
-    w, h = A4
-    y = h - 50
-    c.setFont("Helvetica-Bold", 12)
-    c.drawString(40, y, "Category Report")
-    c.setFont("Helvetica", 10); y -= 30
-    c.drawString(40, y, "Name"); c.drawString(200, y, "Slug")
-    c.drawString(320, y, "Status"); c.drawString(420, y, "Sub-Count")
-    y -= 20
+def export_categories_pdf(qs, basename="export"):
+    """Temporarily disabled - PDF export unavailable"""
+    from django.http import HttpResponse
+    return HttpResponse("PDF export temporarily disabled", status=503)
 
     for cat in qs:
         c.drawString(40, y, cat.name[:25])
@@ -170,17 +170,10 @@ def export_categories_pdf(qs, basename='categories'):
     c.save(); buf.seek(0)
     return FileResponse(buf, as_attachment=True, filename=f'{basename}.pdf')
 
-def export_subcategories_pdf(qs, basename='sub-categories'):
-    buf = io.BytesIO()
-    c = canvas.Canvas(buf, pagesize=A4)
-    w, h = A4
-    y = h - 50
-    c.setFont("Helvetica-Bold", 12)
-    c.drawString(40, y, "Sub-Category Report")
-    c.setFont("Helvetica", 10); y -= 30
-    c.drawString(40, y, "Name"); c.drawString(200, y, "Slug")
-    c.drawString(320, y, "Category"); c.drawString(440, y, "Status")
-    y -= 20
+def export_subcategories_pdf(qs, basename="export"):
+    """Temporarily disabled - PDF export unavailable"""
+    from django.http import HttpResponse
+    return HttpResponse("PDF export temporarily disabled", status=503)
 
     for sub in qs:
         c.drawString(40, y, sub.name[:25])
@@ -253,16 +246,10 @@ def export_variants_excel(qs, basename='variants'):
 # PDF exporters
 # —————————————
 
-def export_units_pdf(qs, basename='units'):
-    buf = io.BytesIO()
-    c = canvas.Canvas(buf, pagesize=A4)
-    w, h = A4
-    y = h - 50
-    c.setFont("Helvetica-Bold", 12)
-    c.drawString(40, y, "Units Report")
-    c.setFont("Helvetica", 10); y -= 30
-    c.drawString(40, y, "Name"); c.drawString(220, y, "Short"); c.drawString(340, y, "Status"); c.drawString(440, y, "Created")
-    y -= 20
+def export_units_pdf(qs, basename="export"):
+    """Temporarily disabled - PDF export unavailable"""
+    from django.http import HttpResponse
+    return HttpResponse("PDF export temporarily disabled", status=503)
 
     for unit in qs:
         c.drawString(40, y, unit.name[:25])
@@ -276,16 +263,10 @@ def export_units_pdf(qs, basename='units'):
     c.save(); buf.seek(0)
     return FileResponse(buf, as_attachment=True, filename=f'{basename}.pdf')
 
-def export_variants_pdf(qs, basename='variants'):
-    buf = io.BytesIO()
-    c = canvas.Canvas(buf, pagesize=A4)
-    w, h = A4
-    y = h - 50
-    c.setFont("Helvetica-Bold", 12)
-    c.drawString(40, y, "Variants Report")
-    c.setFont("Helvetica", 10); y -= 30
-    c.drawString(40, y, "Name"); c.drawString(220, y, "Values"); c.drawString(440, y, "Status")
-    y -= 20
+def export_variants_pdf(qs, basename="export"):
+    """Temporarily disabled - PDF export unavailable"""
+    from django.http import HttpResponse
+    return HttpResponse("PDF export temporarily disabled", status=503)
 
     for var in qs:
         c.drawString(40, y, var.name[:25])
