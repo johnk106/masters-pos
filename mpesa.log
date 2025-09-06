@@ -46,3 +46,5 @@ Using callback URL: https://9341a4f03274.ngrok-free.app/dashboard/sales/mpesa-ca
 M-Pesa callback received: keys=['Body']
 Applied payment to Invoice INV-ORD-20250820-093058-3354: paid=1.00, due=1999.00
 M-Pesa callback processed OK: checkout_request_id=ws_CO_200820251231000768691389, order_id=79, applied=True
+Using callback URL: https://eee9-197-155-73-23.ngrok-free.app/dashboard/sales/mpesa-callback/
+Network error getting M-Pesa access token: 400 Client Error: Bad Request for url: https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials
