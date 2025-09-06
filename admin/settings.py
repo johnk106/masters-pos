@@ -17,7 +17,8 @@ from dotenv import load_dotenv
 load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+# BASE_URL = os.getenv('BASE_URL', 'http://localhost:8000')
+BASE_URL = "https://masterspos.pythonanywhere.com"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -28,9 +29,9 @@ SECRET_KEY = 'django-insecure-*%c((g%ip%f&^gjukext4g0_5dxv4mtqew-0%uagt0czig0_$!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 # DEBUG = True
-ALLOWED_HOSTS = ['*', '28c014be4b76.ngrok-free.app', 'fe72d78ed8ca.ngrok-free.app', '4f8709db6396.ngrok-free.app', 'ff4f35f422ff.ngrok-free.app', 'eee9-197-155-73-23.ngrok-free.app', '9341a4f03274.ngrok-free.app', 'bdcd874d5d22.ngrok-free.app', '4221432d5863.ngrok-free.app', '8f7451180f8b.ngrok-free.app', '50967ea1e171.ngrok-free.app', '5615ad1d259e.ngrok-free.app']
+ALLOWED_HOSTS = ['*', 'https://masterspos.pythonanywhere.com']
 
-CSRF_TRUSTED_ORIGINS = ['http://161.97.114.207','https://eee9-197-155-73-23.ngrok-free.app', 'https://28c014be4b76.ngrok-free.app', 'https://fe72d78ed8ca.ngrok-free.app', 'https://4f8709db6396.ngrok-free.app', 'https://ff4f35f422ff.ngrok-free.app', 'https://9341a4f03274.ngrok-free.app', 'https://bdcd874d5d22.ngrok-free.app', 'https://4221432d5863.ngrok-free.app', 'https://8f7451180f8b.ngrok-free.app', 'https://50967ea1e171.ngrok-free.app', 'https://5615ad1d259e.ngrok-free.app']
+CSRF_TRUSTED_ORIGINS = ['https://masterspos.pythonanywhere.com']
 
 # Dynamically add ngrok origin if provided via environment
 try:

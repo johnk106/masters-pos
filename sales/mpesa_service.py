@@ -88,21 +88,22 @@ class MpesaService:
         """
         try:
             # Ensure ngrok tunnel is running and get callback URL
+            CALLBACK_PATH = "/dashboard/sales/mpesa-callback/"
+
             if not callback_url:
-                callback_url = get_ngrok_callback_url()
-                if not callback_url:
-                    # Try to start ngrok tunnel (single attempt only)
-                    tunnel_url = ensure_ngrok_tunnel()
-                    if tunnel_url:
-                        callback_url = get_ngrok_callback_url()
-                    else:
-                        # No fallback - system is offline or ngrok unavailable
-                        return {
-                            'success': False, 
-                            'message': 'System is offline – M-Pesa payments unavailable. Please check your internet connection or contact support.',
-                            'error_code': 'SYSTEM_OFFLINE',
-                            'reason': 'network'
-                        }
+                # Use the system’s configured base URL
+                base_url = getattr(settings, "BASE_URL", None)
+
+                if not base_url:
+                    return {
+                        'success': False,
+                        'message': 'Missing BASE_URL configuration – M-Pesa payments unavailable. Please contact support.',
+                        'error_code': 'CONFIG_ERROR',
+                        'reason': 'base_url_not_set'
+                    }
+
+                # Build full callback URL
+                callback_url = f"{base_url.rstrip('/')}{CALLBACK_PATH}"
             
             logger.info(f"Using callback URL: {callback_url}")
             
