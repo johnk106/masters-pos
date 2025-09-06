@@ -651,12 +651,15 @@ def mpesa_system_status(request):
 @require_http_methods(["GET"])
 def check_mpesa_status(request, checkout_request_id):
     """
-    Check M-Pesa transaction status
+    Check M-Pesa transaction status and mark timed-out transactions as failed
     """
     from .mpesa_service import MpesaService
     
+    # First, check for and mark any timed-out transactions as failed
+    mpesa_service = MpesaService()
+    mpesa_service.mark_timeout_transactions_as_failed(timeout_minutes=5)
+    
     try:
-        mpesa_service = MpesaService()
         result = mpesa_service.check_transaction_status(checkout_request_id)
         
         return JsonResponse(result)

@@ -5,8 +5,12 @@ from openpyxl import Workbook
 from decimal import Decimal
 from .models import Order
 
-def get_orders_queryset(search=None, source=None, customer=None, status=None, payment_status=None, sort_by=None):
+def get_orders_queryset(search=None, source=None, customer=None, status=None, payment_status=None, sort_by=None, include_failed=False):
     qs = Order.objects.all().select_related('customer')
+    
+    # By default, exclude failed orders unless explicitly requested
+    if not include_failed:
+        qs = qs.exclude(status=Order.Status.FAILED)
     
     # Filter by search term
     if search:

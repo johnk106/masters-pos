@@ -18,7 +18,11 @@ class InvoiceManager:
         """
         Given a completed Order, create an associated Invoice and InvoiceItems.
         Returns the new Invoice instance.
+        Note: Failed orders should not have invoices created.
         """
+        # Don't create invoices for failed orders
+        if order.status == Order.Status.FAILED:
+            raise ValueError("Cannot create invoice for failed order")
         # 1) Build a unique invoice number, e.g. "INV-<order.reference>"
         invoice_no = f"INV-{order.reference}"
 

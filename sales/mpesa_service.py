@@ -240,6 +240,11 @@ class MpesaService:
                     transaction_obj.status = MpesaTransaction.Status.SUCCESSFUL
                 else:
                     transaction_obj.status = MpesaTransaction.Status.FAILED
+                    # Mark associated order as failed if M-Pesa payment fails
+                    if transaction_obj.order:
+                        order = transaction_obj.order
+                        order.status = order.Status.FAILED
+                        order.save(update_fields=['status'])
                 
                 # Extract fields and make timestamp aware
                 callback_metadata = stk_callback.get('CallbackMetadata', {})
@@ -373,3 +378,36 @@ class MpesaService:
             return {'success': False, 'message': 'Transaction not found'}
         except Exception as e:
             return {'success': False, 'message': str(e)}
+    
+    def mark_timeout_transactions_as_failed(self, timeout_minutes=5):
+        """
+        Mark M-Pesa transactions as failed if they haven't received a callback 
+        within the specified timeout period.
+        
+        Args:
+            timeout_minutes (int): Minutes after which pending transactions are considered failed
+        """
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        timeout_threshold = timezone.now() - timedelta(minutes=timeout_minutes)
+        
+        # Find pending transactions older than timeout threshold
+        timeout_transactions = MpesaTransaction.objects.filter(
+            status=MpesaTransaction.Status.PENDING,
+            created_at__lt=timeout_threshold
+        )
+        
+        for transaction in timeout_transactions:
+            transaction.status = MpesaTransaction.Status.FAILED
+            transaction.response_description = f"Transaction timed out after {timeout_minutes} minutes"
+            transaction.save(update_fields=['status', 'response_description'])
+            
+            # Mark associated order as failed if it exists
+            if transaction.order and transaction.order.status not in [transaction.order.Status.FAILED, transaction.order.Status.CANCELED]:
+                transaction.order.status = transaction.order.Status.FAILED
+                transaction.order.save(update_fields=['status'])
+                
+                logger.info(f"Marked timed-out M-Pesa transaction {transaction.checkout_request_id} and order {transaction.order.reference} as failed")
+        
+        return timeout_transactions.count()

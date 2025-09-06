@@ -12,6 +12,7 @@ class Order(models.Model):
         DRAFT     = 'draft',     'Draft'
         COMPLETED = 'completed', 'Completed'
         CANCELED  = 'canceled',  'Canceled'
+        FAILED    = 'failed',    'Failed'
 
     class PaymentStatus(models.TextChoices):
         UNPAID     = 'unpaid',     'Unpaid'
