@@ -621,46 +621,29 @@ def mpesa_callback(request):
 @require_http_methods(["GET"])
 def mpesa_system_status(request):
     """
-    Check M-Pesa system status (ngrok availability)
+    Check M-Pesa system status - now uses base URL instead of ngrok
     """
-    from .ngrok_service import ngrok_service
-    from django.core.cache import cache
+    from django.conf import settings
     
     try:
-        # Check if ngrok is available
-        tunnel_url = ngrok_service.get_tunnel_url()
-        session_limit_hit = cache.get('ngrok_session_limit_hit', False)
+        # Since M-Pesa now uses base URL instead of ngrok, always return available
+        base_url = getattr(settings, 'BASE_URL', 'https://your-domain.com')
         
-        if tunnel_url:
-            status = {
-                'available': True,
-                'status': 'online',
-                'message': 'M-Pesa payments are available',
-                'callback_url': f"{tunnel_url}/dashboard/sales/mpesa-callback/"
-            }
-        elif session_limit_hit:
-            status = {
-                'available': False,
-                'status': 'session_limit',
-                'message': 'System is offline – M-Pesa payments unavailable due to session limit',
-                'callback_url': None
-            }
-        else:
-            status = {
-                'available': False,
-                'status': 'offline',
-                'message': 'System is offline – M-Pesa payments unavailable',
-                'callback_url': None
-            }
+        status = {
+            'available': True,
+            'status': 'online',
+            'message': 'M-Pesa payments are available',
+            'callback_url': f"{base_url}/dashboard/sales/mpesa-callback/"
+        }
         
         return JsonResponse(status)
         
     except Exception as e:
         return JsonResponse({
-            'available': False,
-            'status': 'error',
-            'message': f'Error checking M-Pesa status: {str(e)}',
-            'callback_url': None
+            'available': True,  # Still return available even on error since we're not dependent on ngrok
+            'status': 'online',
+            'message': 'M-Pesa payments are available',
+            'callback_url': f"{getattr(settings, 'BASE_URL', 'https://your-domain.com')}/dashboard/sales/mpesa-callback/"
         })
 
 
