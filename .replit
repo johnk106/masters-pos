@@ -1,0 +1,7 @@
+modules = ["web", "nodejs-20", "bash", "python-3.11"]
+[agent]
+expertMode = true
+
+[nix]
+channel = "stable-25_05"
+packages = ["borgbackup", "cacert", "cargo", "freetype", "glibcLocales", "lcms2", "libev", "libffi", "libiconv", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "openjpeg", "openssl", "pgadmin4", "pkg-config", "rustc", "tcl", "tk", "zeromq", "zlib"]
